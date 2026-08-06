@@ -1,6 +1,13 @@
 import { motion } from 'framer-motion';
+import Seo, { breadcrumbSchema } from '../../components/seo/Seo';
 const AboutPage = () => (
   <div className="container-custom section-padding">
+    <Seo
+      title="About Us"
+      description="AniLiving is a premium pet supplies brand built on one belief — every pet deserves the best. Learn who we are and how we choose what we stock."
+      canonical="/about"
+      jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'About Us', path: '/about' }])}
+    />
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <div className="max-w-3xl mx-auto">
         <div className="section-title"><h2>About AniLiving</h2></div>

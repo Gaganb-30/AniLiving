@@ -1,337 +1,512 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { HiOutlineArrowRight, HiOutlineTruck, HiOutlineShieldCheck, HiOutlineCash, HiOutlineHeart, HiOutlineStar } from 'react-icons/hi';
+import {
+  HiOutlineArrowRight, HiOutlineTruck, HiOutlineShieldCheck,
+  HiOutlineHeart, HiOutlineShoppingCart, HiOutlineFire,
+  HiOutlineBadgeCheck, HiOutlineCash, HiStar,
+} from 'react-icons/hi';
+import ProductCard, { ProductCardSkeleton } from '../../components/common/ProductCard';
+import Seo from '../../components/seo/Seo';
+import { productService, categoryService, brandService, bannerService } from '../../services/apiServices';
+import { useSettings } from '../../hooks/useSettings';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
   visible: (i = 0) => ({
     opacity: 1, y: 0,
-    transition: { delay: i * 0.1, duration: 0.6, ease: 'easeOut' },
+    transition: { delay: Math.min(i * 0.08, 0.4), duration: 0.5, ease: 'easeOut' },
   }),
 };
 
-const stagger = {
-  visible: { transition: { staggerChildren: 0.1 } },
+const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
+
+/** A product rail — reused for flash deals, featured, new, best sellers, trending */
+const ProductRail = ({ title, subtitle, icon, products, loading, viewAllTo, skeletonCount = 4 }) => {
+  if (!loading && (!products || products.length === 0)) return null;
+
+  return (
+    <section className="container-custom section-padding rail-section">
+      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }} variants={stagger}>
+        <div className="rail-head">
+          <div>
+            <h2 className="rail-title">{title} {icon}</h2>
+            {subtitle && <p className="rail-subtitle">{subtitle}</p>}
+          </div>
+          {viewAllTo && <Link to={viewAllTo} className="btn-view-all rail-view-all">View all</Link>}
+        </div>
+
+        <div className="product-grid">
+          {loading
+            ? Array.from({ length: skeletonCount }).map((_, i) => <ProductCardSkeleton key={i} />)
+            : products.map((product, i) => (
+              <motion.div key={product._id} variants={fadeInUp} custom={i}>
+                <ProductCard product={product} />
+              </motion.div>
+            ))}
+        </div>
+      </motion.div>
+    </section>
+  );
 };
 
-// Placeholder product data for demo
-const sampleProducts = [
-  { id: 1, name: 'Premium Nylon Dog Leash', price: 399, mrp: 599, rating: 4.8, reviews: 128, image: '🦮', badge: 'Best Seller' },
-  { id: 2, name: 'Anti-Skid Steel Dog Bowl', price: 249, mrp: 399, rating: 4.7, reviews: 96, image: '🥣', badge: 'New' },
-  { id: 3, name: 'Adjustable Comfort Collar', price: 299, mrp: 499, rating: 4.9, reviews: 214, image: '📿', badge: 'Trending' },
-  { id: 4, name: 'Interactive Dog Toy Ball', price: 199, mrp: 349, rating: 4.6, reviews: 87, image: '⚾', badge: null },
-  { id: 5, name: 'Orthopedic Pet Bed', price: 1299, mrp: 1999, rating: 4.8, reviews: 156, image: '🛏️', badge: 'Featured' },
-  { id: 6, name: 'Grooming Brush Set', price: 449, mrp: 699, rating: 4.5, reviews: 73, image: '🪮', badge: null },
-  { id: 7, name: 'Automatic Pet Feeder', price: 2499, mrp: 3499, rating: 4.7, reviews: 42, image: '🤖', badge: 'New' },
-  { id: 8, name: 'Reflective Safety Harness', price: 599, mrp: 899, rating: 4.9, reviews: 189, image: '🦺', badge: 'Best Seller' },
-];
-
-const sampleCategories = [
-  { name: 'Leashes & Harnesses', image: '🦮', color: 'bg-blue-50', products: 48 },
-  { name: 'Bowls & Feeders', image: '🥣', color: 'bg-orange-50', products: 36 },
-  { name: 'Collars & Tags', image: '📿', color: 'bg-purple-50', products: 52 },
-  { name: 'Toys & Enrichment', image: '🎾', color: 'bg-green-50', products: 64 },
-  { name: 'Beds & Furniture', image: '🛏️', color: 'bg-pink-50', products: 28 },
-  { name: 'Grooming', image: '🪮', color: 'bg-cyan-50', products: 41 },
-];
-
-const testimonials = [
-  { name: 'Priya S.', location: 'Mumbai', rating: 5, text: 'Amazing quality! My dog loves the leash. Super comfortable and durable.', avatar: 'PS' },
-  { name: 'Rahul M.', location: 'Delhi', rating: 5, text: 'The anti-skid bowl is perfect. Fast delivery and great packaging.', avatar: 'RM' },
-  { name: 'Ananya K.', location: 'Bangalore', rating: 5, text: 'Best pet store online! Premium products at reasonable prices.', avatar: 'AK' },
+const TESTIMONIALS = [
+  { name: 'Ananya R.', pet: 'Labrador parent', rating: 5, text: 'Ordered on a Tuesday, food arrived Thursday morning. Bruno finishes his bowl now — that never happened with his old kibble.' },
+  { name: 'Karthik S.', pet: 'Two Persian cats', rating: 5, text: 'The litter I use is impossible to find locally. AniLiving stocks it and the price is better than the pet shop down my road.' },
+  { name: 'Meera J.', pet: 'Beagle parent', rating: 4, text: 'Packaging was solid and the harness sizing guide was accurate. Support replied within an hour when I asked about a swap.' },
 ];
 
 const HomePage = () => {
+  const { settings } = useSettings();
+
+  const [banners, setBanners] = useState([]);
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  const [featured, setFeatured] = useState([]);
+  const [newArrivals, setNewArrivals] = useState([]);
+  const [bestSellers, setBestSellers] = useState([]);
+  const [trending, setTrending] = useState([]);
+  const [flashDeals, setFlashDeals] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  // -------------------------------------------------------------------
+  // Load everything in parallel. Each rail simply hides itself if its
+  // request fails, so one bad endpoint never blanks the homepage.
+  // -------------------------------------------------------------------
+  useEffect(() => {
+    const safeProducts = (promise) => promise
+      .then(({ data }) => data?.data?.products || [])
+      .catch(() => []);
+
+    Promise.all([
+      safeProducts(productService.getFeatured(8)),
+      safeProducts(productService.getNewArrivals(8)),
+      safeProducts(productService.getBestSellers(8)),
+      safeProducts(productService.getTrending(8)),
+      safeProducts(productService.getFlashDeals(8)),
+    ]).then(([f, n, b, t, d]) => {
+      setFeatured(f);
+      setNewArrivals(n);
+      setBestSellers(b);
+      setTrending(t);
+      setFlashDeals(d);
+      setLoadingProducts(false);
+    });
+
+    categoryService.getCategories()
+      .then(({ data }) => setCategories((data?.data?.categories || []).filter((c) => !c.parent)))
+      .catch(() => setCategories([]))
+      .finally(() => setLoadingCategories(false));
+
+    brandService.getBrands()
+      .then(({ data }) => setBrands(data?.data?.brands || []))
+      .catch(() => setBrands([]));
+
+    bannerService.getBanners()
+      .then(({ data }) => setBanners(data?.data?.banners || []))
+      .catch(() => setBanners([]));
+  }, []);
+
+  // Rotate the hero when the admin has published more than one banner
+  useEffect(() => {
+    if (banners.length < 2) return undefined;
+    const timer = setInterval(() => setActiveSlide((s) => (s + 1) % banners.length), 6000);
+    return () => clearInterval(timer);
+  }, [banners.length]);
+
+  const banner = banners[activeSlide];
+
   return (
     <>
+      <Seo
+        description={settings.seo?.description}
+        keywords={settings.seo?.keywords}
+        canonical="/"
+      />
+
       {/* ============================================================
-          HERO SECTION
+          HERO
           ============================================================ */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent-light via-accent to-background" />
-        <div className="container-custom relative z-10 py-16 md:py-24 lg:py-28">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={stagger}
-            >
-              <motion.div variants={fadeInUp} custom={0} className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 mb-6 shadow-soft">
-                <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
-                <span className="text-sm font-medium text-text-light">Free delivery on prepaid orders</span>
+      <section className="hero-section">
+        <div className="container-custom">
+          <div className="hero-grid">
+            <motion.div initial="hidden" animate="visible" variants={stagger}>
+              <motion.div variants={fadeInUp} custom={0} className="hero-trust-badge">
+                <div className="hero-trust-avatars">
+                  {['🐕', '🐈', '🐾', '🐶'].map((e, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        backgroundColor: '#FFF',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        marginLeft: i > 0 ? '-8px' : '0',
+                      }}
+                    >
+                      {e}
+                    </span>
+                  ))}
+                </div>
+                <span className="hero-trust-text">
+                  Trusted by <strong style={{ color: '#222' }}>10,000+</strong> Pet Parents
+                  <HiOutlineBadgeCheck style={{ display: 'inline', color: '#3B82F6', marginLeft: '4px', verticalAlign: 'middle' }} />
+                </span>
               </motion.div>
-              <motion.h1 variants={fadeInUp} custom={1} className="text-4xl md:text-5xl lg:text-[56px] font-extrabold leading-[1.08] text-text mb-6">
-                Premium Pet Supplies for Your{' '}
-                <span className="text-primary">Beloved Companions</span>
+
+              <motion.h1 variants={fadeInUp} custom={1} className="hero-heading">
+                {banner?.title || (
+                  <>
+                    Everything Your Pet Needs,<br />
+                    <span className="highlight">Delivered</span> to Your Door.
+                  </>
+                )}
               </motion.h1>
-              <motion.p variants={fadeInUp} custom={2} className="text-lg text-text-light max-w-lg mb-8 leading-relaxed">
-                Discover curated, high-quality products for dogs, cats, and all your furry friends. Everything your pet deserves, delivered to your door.
+
+              <motion.p variants={fadeInUp} custom={2} className="hero-subtitle">
+                {banner?.subtitle || 'Premium pet essentials for dogs and cats. Because they deserve the best.'}
               </motion.p>
-              <motion.div variants={fadeInUp} custom={3} className="flex flex-wrap gap-4">
-                <Link to="/shop" className="btn-primary text-base px-8 py-3.5">
-                  Shop Now <HiOutlineArrowRight className="w-5 h-5" />
+
+              <motion.div variants={fadeInUp} custom={3} className="hero-buttons">
+                <Link to={banner?.link || '/shop'} className="btn-primary hero-cta">
+                  {banner?.buttonText || 'Shop Now'} <HiOutlineArrowRight />
                 </Link>
-                <Link to="/categories" className="btn-secondary text-base px-8 py-3.5">
-                  View Categories
+                <Link to="/categories" className="btn-secondary hero-cta">
+                  Explore Categories
                 </Link>
               </motion.div>
-              <motion.div variants={fadeInUp} custom={4} className="flex items-center gap-6 mt-10 text-sm text-text-light">
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {['🐕', '🐈', '🐾'].map((e, i) => (
-                      <span key={i} className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-base shadow-sm border-2 border-white">{e}</span>
-                    ))}
+
+              <motion.div variants={fadeInUp} custom={4} className="hero-features">
+                {[
+                  { icon: <HiOutlineTruck />, title: 'Fast Delivery', desc: 'On prepaid orders' },
+                  { icon: <HiOutlineCash />, title: 'COD Available', desc: 'Easy payments' },
+                  { icon: <HiOutlineShieldCheck />, title: 'Quality Checked', desc: 'Premium products' },
+                  { icon: <HiOutlineHeart />, title: 'Pet Friendly', desc: 'Loved by pets' },
+                ].map((f, i) => (
+                  <div key={i} className="hero-feature-item">
+                    <div className="hero-feature-icon">{f.icon}</div>
+                    <div className="hero-feature-title">{f.title}</div>
+                    <div className="hero-feature-desc">{f.desc}</div>
                   </div>
-                  <span><strong className="text-text">10,000+</strong> Happy Pets</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <HiOutlineStar className="w-4 h-4 text-primary fill-primary" />
-                  <span><strong className="text-text">4.9</strong> Avg Rating</span>
-                </div>
+                ))}
               </motion.div>
             </motion.div>
 
-            {/* Hero Visual Card */}
+            {/* Hero image — the admin's banner when one is published, otherwise
+                the default art. `mobileImage` lets a shorter crop be served to
+                phones so the banner never eats the whole first screen. */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, x: 40 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
-              className="relative hidden lg:block"
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, ease: 'easeOut', delay: 0.2 }}
+              className="hero-image-container"
             >
-              <div className="bg-white rounded-[2rem] p-6 shadow-elevated relative">
-                <div className="h-[380px] rounded-2xl bg-gradient-to-br from-primary/20 via-accent to-primary/10 flex items-center justify-center text-[140px] select-none">
-                  🐶
-                </div>
-                {/* Floating badges */}
+              <AnimatePresence mode="wait">
                 <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1, duration: 0.5 }}
-                  className="absolute -left-6 top-12 bg-white rounded-2xl px-5 py-3 shadow-card font-bold text-sm text-text"
+                  key={banner?._id || 'default'}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="hero-image-frame"
                 >
-                  ✨ Premium Quality
+                  <picture>
+                    {banner?.mobileImage && (
+                      <source media="(max-width: 640px)" srcSet={banner.mobileImage} />
+                    )}
+                    <img
+                      src={banner?.image || '/images/hero-banner.png'}
+                      alt={banner?.title || 'Happy golden retriever and cat with pet supplies'}
+                      loading="eager"
+                      width="640"
+                      height="480"
+                    />
+                  </picture>
                 </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, x: 30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1.2, duration: 0.5 }}
-                  className="absolute -right-6 bottom-20 bg-white rounded-2xl px-5 py-3 shadow-card font-bold text-sm text-text"
-                >
-                  🚚 Fast Delivery
-                </motion.div>
+              </AnimatePresence>
+
+              <div className="hero-watermark">
+                <span>🐾</span>
+                <span style={{ color: '#F7931E' }}>Ani</span>
+                <span style={{ color: '#222' }}>Living</span>
+                <span style={{ fontSize: '1rem' }}>🐾</span>
               </div>
             </motion.div>
           </div>
+
+          {banners.length > 1 && (
+            <div className="carousel-dots hero-dots">
+              {banners.map((b, i) => (
+                <button
+                  key={b._id}
+                  type="button"
+                  className={`carousel-dot ${i === activeSlide ? 'active' : ''}`}
+                  onClick={() => setActiveSlide(i)}
+                  aria-label={`Show banner ${i + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
       {/* ============================================================
-          FEATURES BAR
+          SHOP BY PET
           ============================================================ */}
-      <section className="container-custom -mt-4 relative z-10 mb-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="bg-white rounded-2xl shadow-card grid grid-cols-2 md:grid-cols-4 divide-x divide-border-light"
-        >
-          {[
-            { icon: HiOutlineTruck, title: 'Fast Delivery', desc: 'Quick dispatch across India' },
-            { icon: HiOutlineCash, title: 'COD Available', desc: 'Easy payment option' },
-            { icon: HiOutlineShieldCheck, title: 'Quality Checked', desc: 'Durable daily-use products' },
-            { icon: HiOutlineHeart, title: 'Pet Friendly', desc: 'Comfort-first design' },
-          ].map((feature, i) => (
-            <div key={i} className="flex flex-col items-center text-center py-6 px-4">
-              <feature.icon className="w-8 h-8 text-primary mb-2" />
-              <h4 className="font-semibold text-text text-sm">{feature.title}</h4>
-              <p className="text-xs text-text-muted mt-0.5">{feature.desc}</p>
+      <section className="container-custom section-padding">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+          <motion.div variants={fadeInUp} className="section-title">
+            <h2>✨ Shop by Pet ✨</h2>
+            <p>Everything specially curated for your furry companions</p>
+          </motion.div>
+
+          <div className="shop-by-pet-grid">
+            <motion.div variants={fadeInUp} custom={0}>
+              <div className="shop-by-pet-card">
+                <div className="shop-by-pet-image">
+                  <img src="/images/dog-card.png" alt="Golden retriever dog" loading="lazy" />
+                </div>
+                <div className="shop-by-pet-content">
+                  <div className="shop-by-pet-icon"><HiOutlineShoppingCart /></div>
+                  <h3 className="shop-by-pet-title">Dogs</h3>
+                  <p className="shop-by-pet-desc">Food, toys, grooming &amp; more for your best friend.</p>
+                  <Link to="/shop?tags=dog" className="shop-by-pet-link">
+                    Shop for Dogs <HiOutlineArrowRight />
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div variants={fadeInUp} custom={1}>
+              <div className="shop-by-pet-card">
+                <div className="shop-by-pet-image">
+                  <img src="/images/cat-card.png" alt="Tabby cat" loading="lazy" />
+                </div>
+                <div className="shop-by-pet-content">
+                  <div className="shop-by-pet-icon"><HiOutlineShoppingCart /></div>
+                  <h3 className="shop-by-pet-title">Cats</h3>
+                  <p className="shop-by-pet-desc">Everything your cat needs, in one place.</p>
+                  <Link to="/shop?tags=cat" className="shop-by-pet-link">
+                    Shop for Cats <HiOutlineArrowRight />
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* ============================================================
+          CATEGORIES
+          ============================================================ */}
+      <section className="container-custom section-padding" style={{ paddingTop: 0 }}>
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+          <motion.div variants={fadeInUp} className="section-title">
+            <h2>✨ Popular Categories ✨</h2>
+            <p>Top picks for your furry friends</p>
+          </motion.div>
+
+          {loadingCategories ? (
+            <div className="category-grid">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="category-card skeleton">
+                  <div className="category-card-image skeleton-image" style={{ borderRadius: '50%' }} />
+                  <div className="skeleton-line" style={{ width: '60%', height: '14px', margin: '0.5rem auto 0' }} />
+                </div>
+              ))}
             </div>
-          ))}
-        </motion.div>
-      </section>
-
-      {/* ============================================================
-          FEATURED CATEGORIES
-          ============================================================ */}
-      <section className="container-custom section-padding">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-          <motion.div variants={fadeInUp} className="section-title">
-            <h2>Shop By Category</h2>
-            <p>Find everything your pet needs, organized for easy browsing.</p>
-          </motion.div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
-            {sampleCategories.map((cat, i) => (
-              <motion.div key={i} variants={fadeInUp} custom={i}>
-                <Link
-                  to={`/shop?category=${cat.name}`}
-                  className="group block bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1"
-                >
-                  <div className={`${cat.color} h-28 flex items-center justify-center text-5xl group-hover:scale-110 transition-transform duration-300`}>
-                    {cat.image}
-                  </div>
-                  <div className="p-3.5 text-center">
-                    <h3 className="font-semibold text-text text-sm">{cat.name}</h3>
-                    <p className="text-xs text-text-muted mt-0.5">{cat.products} products</p>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ============================================================
-          FEATURED PRODUCTS
-          ============================================================ */}
-      <section className="container-custom section-padding pt-0">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-          <motion.div variants={fadeInUp} className="section-title">
-            <h2>Featured Products</h2>
-            <p>Our most-loved products, hand-picked for your pet.</p>
-          </motion.div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {sampleProducts.map((product, i) => (
-              <motion.div key={product.id} variants={fadeInUp} custom={i}>
-                <Link
-                  to={`/product/${product.id}`}
-                  className="group block bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1"
-                >
-                  <div className="relative h-44 bg-accent-light flex items-center justify-center text-6xl group-hover:scale-105 transition-transform duration-300">
-                    {product.image}
-                    {product.badge && (
-                      <span className="absolute top-3 left-3 bg-primary text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-                        {product.badge}
-                      </span>
+          ) : (
+            <div className="category-grid">
+              {categories.slice(0, 10).map((cat, i) => (
+                <motion.div key={cat._id} variants={fadeInUp} custom={i}>
+                  <Link to={`/shop?category=${cat._id}`} className="category-circle-card">
+                    <div className="category-circle-image">
+                      {cat.image
+                        ? <img src={cat.image} alt={cat.name} loading="lazy" />
+                        : <span style={{ fontSize: '2rem' }}>🐾</span>}
+                    </div>
+                    <div className="category-circle-name">{cat.name}</div>
+                    {cat.productCount !== undefined && (
+                      <div className="category-circle-count">{cat.productCount} products</div>
                     )}
-                    <button
-                      className="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                      aria-label="Add to wishlist"
-                    >
-                      <HiOutlineHeart className="w-4 h-4 text-text" />
-                    </button>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-text text-sm leading-snug line-clamp-2 mb-1.5 group-hover:text-primary transition-colors">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-center gap-1 mb-2">
-                      <div className="flex items-center gap-0.5 text-primary text-xs">
-                        {'★'.repeat(Math.floor(product.rating))}
-                      </div>
-                      <span className="text-xs text-text-muted">({product.reviews})</span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-bold text-text text-lg">₹{product.price}</span>
-                      <span className="text-sm text-text-muted line-through">₹{product.mrp}</span>
-                      <span className="text-xs font-semibold text-success ml-auto">
-                        {Math.round(((product.mrp - product.price) / product.mrp) * 100)}% off
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-          <div className="text-center mt-10">
-            <Link to="/shop" className="btn-secondary px-10">
-              View All Products <HiOutlineArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </motion.div>
-      </section>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          )}
 
-      {/* ============================================================
-          PROMO BANNER
-          ============================================================ */}
-      <section className="container-custom pb-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="bg-gradient-to-r from-secondary-dark to-secondary rounded-[2rem] p-10 md:p-14 grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-white"
-        >
-          <div>
-            <h2 className="text-3xl md:text-4xl font-extrabold mb-4 leading-tight">
-              Everything Your Pet Deserves, In One Place
-            </h2>
-            <p className="text-white/70 leading-relaxed mb-6">
-              From premium leashes to cozy beds, explore our curated collection designed with love for your furry companions.
-            </p>
-            <Link to="/shop" className="btn-primary text-base">
-              Shop the Collection <HiOutlineArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-          <div className="text-center text-[120px] leading-none select-none hidden md:block">
-            🐕‍🦺🐈
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ============================================================
-          WHY CHOOSE US
-          ============================================================ */}
-      <section className="container-custom section-padding">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-          <motion.div variants={fadeInUp} className="section-title">
-            <h2>Why Choose AniLiving?</h2>
-            <p>We go the extra mile for your pet's happiness.</p>
+          <motion.div variants={fadeInUp} style={{ textAlign: 'center', marginTop: '2rem' }}>
+            <Link to="/categories" className="btn-view-all">View All Categories</Link>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: '🏆', title: 'Premium Quality', desc: 'Every product is carefully curated and quality-checked before it reaches your doorstep.' },
-              { icon: '💰', title: 'Best Prices', desc: 'Competitive pricing with regular offers and discounts. Premium quality without the premium price tag.' },
-              { icon: '🚀', title: 'Fast & Safe Delivery', desc: 'Quick dispatch, secure packaging, and doorstep delivery across India. Track your order in real-time.' },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                variants={fadeInUp}
-                custom={i}
-                className="bg-white rounded-2xl p-8 shadow-soft text-center hover:shadow-card transition-shadow"
-              >
-                <span className="text-5xl block mb-4">{item.icon}</span>
-                <h3 className="font-bold text-text text-lg mb-2">{item.title}</h3>
-                <p className="text-text-light text-sm leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
         </motion.div>
+      </section>
+
+      {/* ============================================================
+          PRODUCT RAILS
+          ============================================================ */}
+      <ProductRail
+        title="Flash Deals"
+        subtitle="Limited-time prices — while stocks last"
+        icon={<HiOutlineFire style={{ color: 'var(--color-error)' }} />}
+        products={flashDeals}
+        loading={false}
+        viewAllTo="/shop?isFlashDeal=true"
+      />
+
+      <ProductRail
+        title="Featured Products"
+        subtitle="Handpicked favourites for your pets"
+        icon={<HiOutlineHeart style={{ color: 'var(--color-primary)' }} />}
+        products={featured}
+        loading={loadingProducts}
+        viewAllTo="/shop?isFeatured=true"
+      />
+
+      <ProductRail
+        title="New Arrivals"
+        subtitle="Fresh on the shelves this week"
+        icon={<span>🆕</span>}
+        products={newArrivals}
+        loading={false}
+        viewAllTo="/shop?isNewArrival=true"
+      />
+
+      <ProductRail
+        title="Best Sellers"
+        subtitle="What pet parents keep coming back for"
+        icon={<span>🏆</span>}
+        products={bestSellers}
+        loading={false}
+        viewAllTo="/shop?isBestSeller=true"
+      />
+
+      <ProductRail
+        title="Trending Now"
+        subtitle="Popular with pet parents right now"
+        icon={<span>📈</span>}
+        products={trending}
+        loading={false}
+        viewAllTo="/shop?isTrending=true"
+      />
+
+      {/* ============================================================
+          SHOP BY BRAND
+          ============================================================ */}
+      {brands.length > 0 && (
+        <section className="container-custom section-padding" style={{ paddingTop: 0 }}>
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+            <motion.div variants={fadeInUp} className="section-title">
+              <h2>Shop by Brand</h2>
+              <p>The names pet parents trust</p>
+            </motion.div>
+
+            <div className="brand-strip">
+              {brands.slice(0, 12).map((brand, i) => (
+                <motion.div key={brand._id} variants={fadeInUp} custom={i}>
+                  <Link to={`/shop?brand=${brand._id}`} className="brand-strip-item">
+                    {brand.logo
+                      ? <img src={brand.logo} alt={brand.name} loading="lazy" />
+                      : <span>{brand.name}</span>}
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+              <Link to="/brands" className="btn-view-all">View All Brands</Link>
+            </div>
+          </motion.div>
+        </section>
+      )}
+
+      {/* ============================================================
+          WHY CHOOSE ANILIVING
+          ============================================================ */}
+      <section className="trust-bar">
+        <div className="container-custom">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="trust-bar-grid"
+          >
+            {[
+              { icon: '🐾', title: 'Loved by Pets', desc: 'Happy pets, happy pet parents', cls: 'pets' },
+              { icon: '🏆', title: 'Premium Quality', desc: 'Carefully selected trusted brands', cls: 'quality' },
+              { icon: '🛡️', title: 'Safe & Secure', desc: '100% secure payments', cls: 'secure' },
+              { icon: '🎧', title: 'Dedicated Support', desc: 'We are always here to help', cls: 'support' },
+            ].map((item, i) => (
+              <div key={i} className="trust-bar-item">
+                <div className={`trust-bar-icon ${item.cls}`}>{item.icon}</div>
+                <div>
+                  <div className="trust-bar-title">{item.title}</div>
+                  <div className="trust-bar-desc">{item.desc}</div>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        </div>
       </section>
 
       {/* ============================================================
           TESTIMONIALS
           ============================================================ */}
-      <section className="container-custom section-padding pt-0">
+      <section className="container-custom section-padding">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
           <motion.div variants={fadeInUp} className="section-title">
             <h2>What Pet Parents Say</h2>
-            <p>Real reviews from real pet lovers.</p>
+            <p>Real reviews from the AniLiving community</p>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <motion.div
-                key={i}
-                variants={fadeInUp}
-                custom={i}
-                className="bg-white rounded-2xl p-7 shadow-soft"
-              >
-                <div className="text-primary text-sm mb-3">{'★'.repeat(t.rating)}</div>
-                <p className="text-text-light text-sm leading-relaxed mb-5">"{t.text}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center font-bold text-primary text-sm">
-                    {t.avatar}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-text text-sm">{t.name}</p>
-                    <p className="text-xs text-text-muted">{t.location}</p>
-                  </div>
+
+          <div className="testimonial-grid">
+            {TESTIMONIALS.map((testimonial, i) => (
+              <motion.figure key={testimonial.name} variants={fadeInUp} custom={i} className="testimonial-card">
+                <div className="testimonial-stars">
+                  {Array.from({ length: testimonial.rating }).map((_, s) => <HiStar key={s} />)}
                 </div>
-              </motion.div>
+                <blockquote>{testimonial.text}</blockquote>
+                <figcaption>
+                  <strong>{testimonial.name}</strong>
+                  <span>{testimonial.pet}</span>
+                </figcaption>
+              </motion.figure>
             ))}
           </div>
         </motion.div>
+      </section>
+
+      {/* ============================================================
+          NEWSLETTER
+          ============================================================ */}
+      <section className="newsletter-section">
+        <div className="container-custom">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="newsletter-inner"
+          >
+            <div className="newsletter-illustration">
+              <div style={{ fontSize: '6rem', lineHeight: 1, textAlign: 'center', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))' }}>
+                🐕
+              </div>
+            </div>
+
+            <div className="newsletter-content">
+              <h3><span style={{ marginRight: '8px' }}>📬</span>Stay Updated with AniLiving</h3>
+              <p>Get the best deals, new arrivals &amp; pet care tips straight to your inbox.</p>
+              <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
+                <input type="email" placeholder="Enter your email address" required aria-label="Email address" />
+                <button type="submit">Subscribe</button>
+              </form>
+              <div className="newsletter-disclaimer">No spam, unsubscribe anytime.</div>
+            </div>
+          </motion.div>
+        </div>
       </section>
     </>
   );

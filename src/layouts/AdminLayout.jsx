@@ -1,17 +1,23 @@
-import { Outlet, Link, useLocation, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, Link, NavLink, useLocation, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   HiOutlineChartBar, HiOutlineShoppingBag, HiOutlineCollection,
   HiOutlineTag, HiOutlineCog, HiOutlineUsers, HiOutlineTicket,
   HiOutlinePhotograph, HiOutlineArchive, HiOutlineStar,
+  HiOutlineClipboardList, HiOutlineMenu, HiOutlineX, HiOutlineLogout,
 } from 'react-icons/hi';
+import { useAuth } from '../hooks/useAuth';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
-const adminLinks = [
-  { name: 'Dashboard', path: '/admin', icon: HiOutlineChartBar },
+const ADMIN_LINKS = [
+  { name: 'Dashboard', path: '/admin', icon: HiOutlineChartBar, end: true },
   { name: 'Products', path: '/admin/products', icon: HiOutlineShoppingBag },
+  { name: 'Inventory', path: '/admin/inventory', icon: HiOutlineClipboardList },
+  { name: 'Orders', path: '/admin/orders', icon: HiOutlineArchive },
   { name: 'Categories', path: '/admin/categories', icon: HiOutlineCollection },
   { name: 'Brands', path: '/admin/brands', icon: HiOutlineTag },
-  { name: 'Orders', path: '/admin/orders', icon: HiOutlineArchive },
   { name: 'Customers', path: '/admin/customers', icon: HiOutlineUsers },
   { name: 'Reviews', path: '/admin/reviews', icon: HiOutlineStar },
   { name: 'Coupons', path: '/admin/coupons', icon: HiOutlineTicket },
@@ -20,68 +26,104 @@ const adminLinks = [
 ];
 
 /**
- * Admin Dashboard Layout with sidebar navigation
+ * Admin shell.
+ *
+ * Access is gated here for the UX, but every admin API route is independently
+ * protected server-side — this guard is convenience, not security.
  */
 const AdminLayout = () => {
   const location = useLocation();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { logout } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  if (!isAuthenticated || user?.role !== 'admin') {
-    return <Navigate to="/login" replace />;
+  useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
+
+  // redux-persist rehydration can briefly leave `user` empty on a hard refresh
+  if (isAuthenticated && !user) {
+    return <div className="route-fallback"><LoadingSpinner size="lg" text="Checking access…" /></div>;
   }
+  if (!isAuthenticated) return <Navigate to="/login?redirect=/admin" replace />;
+  if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
+
+  const sidebar = (
+    <>
+      <Link to="/" className="admin-brand">
+        <span className="admin-brand-ani">Ani</span>
+        <span className="admin-brand-living">Living</span>
+        <span className="admin-brand-tag">Admin</span>
+      </Link>
+
+      <nav className="admin-nav">
+        {ADMIN_LINKS.map((link) => (
+          <NavLink
+            key={link.path}
+            to={link.path}
+            end={link.end}
+            className={({ isActive }) => `admin-nav-link ${isActive ? 'is-active' : ''}`}
+          >
+            <link.icon />
+            {link.name}
+          </NavLink>
+        ))}
+      </nav>
+
+      <div className="admin-sidebar-foot">
+        <Link to="/" className="admin-nav-link">← View store</Link>
+        <button type="button" className="admin-nav-link" onClick={logout}>
+          <HiOutlineLogout /> Sign out
+        </button>
+      </div>
+    </>
+  );
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-secondary-dark text-white min-h-screen fixed left-0 top-0 z-40 overflow-y-auto">
-        <div className="p-6">
-          <Link to="/" className="inline-block mb-8">
-            <span className="text-xl font-extrabold text-primary">Ani</span>
-            <span className="text-xl font-extrabold text-white">Living</span>
-            <span className="block text-xs text-white/50 mt-0.5">Admin Panel</span>
-          </Link>
+    <div className="admin-shell">
+      {/* Desktop sidebar */}
+      <aside className="admin-sidebar">{sidebar}</aside>
 
-          <nav className="flex flex-col gap-1">
-            {adminLinks.map((link) => {
-              const isActive = location.pathname === link.path;
-              return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    isActive
-                      ? 'bg-primary text-white'
-                      : 'text-white/60 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <link.icon className="w-5 h-5" />
-                  {link.name}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-      </aside>
+      {/* Mobile sidebar */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <>
+            <motion.div
+              className="drawer-backdrop"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setSidebarOpen(false)}
+            />
+            <motion.aside
+              className="admin-sidebar is-mobile"
+              initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
+              transition={{ type: 'tween', duration: 0.25 }}
+            >
+              {sidebar}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
 
-      {/* Main Content */}
-      <div className="flex-1 ml-64">
-        {/* Top Bar */}
-        <header className="bg-white border-b border-border-light px-8 py-4 flex items-center justify-between sticky top-0 z-30">
-          <h1 className="text-lg font-semibold text-text">
-            {adminLinks.find((l) => l.path === location.pathname)?.name || 'Admin'}
-          </h1>
-          <div className="flex items-center gap-3">
-            <Link to="/" className="text-sm text-text-light hover:text-primary transition-colors">
-              View Store →
-            </Link>
-            <div className="w-9 h-9 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
-              {user?.firstName?.[0]}
-            </div>
+      <div className="admin-main">
+        <header className="admin-topbar">
+          <button
+            type="button"
+            className="admin-menu-toggle"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Open admin menu"
+          >
+            {sidebarOpen ? <HiOutlineX /> : <HiOutlineMenu />}
+          </button>
+
+          <span className="admin-topbar-title">
+            {ADMIN_LINKS.find((l) => (l.end ? location.pathname === l.path : location.pathname.startsWith(l.path)))?.name || 'Admin'}
+          </span>
+
+          <div className="admin-topbar-user">
+            <span className="admin-avatar">{user?.firstName?.[0]}{user?.lastName?.[0]}</span>
+            <span className="admin-topbar-name">{user?.firstName} {user?.lastName}</span>
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="p-8">
+        <main className="admin-content">
           <Outlet />
         </main>
       </div>

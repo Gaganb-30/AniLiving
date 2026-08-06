@@ -1,7 +1,14 @@
 import { motion } from 'framer-motion';
 import { HiOutlineMail, HiOutlinePhone, HiOutlineLocationMarker } from 'react-icons/hi';
+import Seo, { breadcrumbSchema } from '../../components/seo/Seo';
 const ContactPage = () => (
   <div className="container-custom section-padding">
+    <Seo
+      title="Contact Us"
+      description="Get in touch with the AniLiving support team about an order, a product question or anything else."
+      canonical="/contact"
+      jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Contact Us', path: '/contact' }])}
+    />
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <div className="section-title"><h2>Contact Us</h2><p>We'd love to hear from you. Get in touch!</p></div>
       <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">

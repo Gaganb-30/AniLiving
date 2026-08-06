@@ -1,8 +1,20 @@
 import { motion } from 'framer-motion';
+import Seo, { breadcrumbSchema } from '../../components/seo/Seo';
 
-/** Reusable policy page wrapper */
-const PolicyPage = ({ title, children }) => (
+/**
+ * Reusable policy page wrapper.
+ *
+ * These pages are a hard requirement for Razorpay merchant onboarding, so each
+ * one is indexable, has its own canonical URL and carries breadcrumb data.
+ */
+const PolicyPage = ({ title, description, path, children }) => (
   <div className="container-custom section-padding">
+    <Seo
+      title={title}
+      description={description}
+      canonical={path}
+      jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: title, path }])}
+    />
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <div className="max-w-3xl mx-auto">
         <div className="section-title"><h2>{title}</h2></div>
@@ -15,7 +27,7 @@ const PolicyPage = ({ title, children }) => (
 );
 
 export const PrivacyPolicyPage = () => (
-  <PolicyPage title="Privacy Policy">
+  <PolicyPage title="Privacy Policy" path="/privacy-policy" description="How AniLiving collects, uses and protects your personal information.">
     <p><strong className="text-text">Effective Date:</strong> July 2026</p>
     <p>AniLiving ("we", "our", "us") respects your privacy and is committed to protecting the personal information you share with us. This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website aniliving.com.</p>
     <h3 className="text-text font-bold text-lg mt-6">Information We Collect</h3>
@@ -30,7 +42,7 @@ export const PrivacyPolicyPage = () => (
 );
 
 export const RefundPolicyPage = () => (
-  <PolicyPage title="Refund Policy">
+  <PolicyPage title="Refund Policy" path="/refund-policy" description="AniLiving refund and return terms, timelines and how refunds are processed.">
     <p>At AniLiving, we want you to be completely satisfied with your purchase. If you're not happy, we're here to help.</p>
     <h3 className="text-text font-bold text-lg mt-6">Eligibility for Refund</h3>
     <ul className="list-disc pl-5 space-y-1"><li>Request must be made within 7 days of delivery</li><li>Product must be unused and in original packaging</li><li>Products damaged during transit are eligible for immediate replacement or refund</li><li>Perishable items (food, treats) are non-refundable unless defective</li></ul>
@@ -42,7 +54,7 @@ export const RefundPolicyPage = () => (
 );
 
 export const ShippingPolicyPage = () => (
-  <PolicyPage title="Shipping Policy">
+  <PolicyPage title="Shipping Policy" path="/shipping-policy" description="Delivery timelines, shipping charges and coverage for AniLiving orders.">
     <p>AniLiving is committed to delivering your orders quickly and safely across India.</p>
     <h3 className="text-text font-bold text-lg mt-6">Shipping Charges</h3>
     <ul className="list-disc pl-5 space-y-1"><li><strong className="text-text">Prepaid Orders:</strong> Free shipping on all prepaid orders</li><li><strong className="text-text">COD Orders:</strong> A shipping fee may apply based on location</li></ul>
@@ -54,7 +66,7 @@ export const ShippingPolicyPage = () => (
 );
 
 export const CancellationPolicyPage = () => (
-  <PolicyPage title="Cancellation Policy">
+  <PolicyPage title="Cancellation Policy" path="/cancellation-policy" description="When and how you can cancel an AniLiving order.">
     <p>We understand plans can change. Here's our cancellation policy:</p>
     <h3 className="text-text font-bold text-lg mt-6">Before Shipping</h3>
     <p>Orders can be cancelled anytime before they are shipped. Full refund will be processed.</p>
@@ -66,7 +78,7 @@ export const CancellationPolicyPage = () => (
 );
 
 export const TermsPage = () => (
-  <PolicyPage title="Terms & Conditions">
+  <PolicyPage title="Terms & Conditions" path="/terms-and-conditions" description="The terms that govern your use of AniLiving and any purchase you make.">
     <p>By using the AniLiving website (aniliving.com), you agree to the following terms and conditions.</p>
     <h3 className="text-text font-bold text-lg mt-6">Use of Website</h3>
     <p>You agree to use this website for lawful purposes only. You must be at least 18 years of age or have parental consent to make purchases.</p>
@@ -82,7 +94,7 @@ export const TermsPage = () => (
 );
 
 export const DisclaimerPage = () => (
-  <PolicyPage title="Disclaimer">
+  <PolicyPage title="Disclaimer" path="/disclaimer" description="Important disclaimers about product information and advice on AniLiving.">
     <p>The information provided on aniliving.com is for general informational purposes only. While we strive to keep the information up to date and accurate, we make no representations or warranties of any kind about the completeness, accuracy, or suitability of the information, products, or services.</p>
     <p>Product images are for illustration purposes and may slightly differ from the actual product. We recommend reading product descriptions carefully before making a purchase.</p>
     <p>AniLiving is not responsible for any adverse reactions or health issues arising from the use of products purchased from our store. Always consult with a veterinarian before introducing new products to your pet.</p>

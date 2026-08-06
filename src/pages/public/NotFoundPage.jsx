@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import Seo from '../../components/seo/Seo';
 const NotFoundPage = () => (
   <div className="container-custom section-padding">
+    {/* noindex so a mistyped URL never enters the search index */}
+    <Seo title="Page not found" noindex />
     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="max-w-lg mx-auto text-center py-10">
       <span className="text-8xl block mb-6">🐾</span>
       <h1 className="text-6xl font-extrabold text-primary mb-4">404</h1>

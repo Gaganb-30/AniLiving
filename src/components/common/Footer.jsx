@@ -1,16 +1,29 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HiOutlineMail, HiOutlinePhone, HiOutlineLocationMarker } from 'react-icons/hi';
 import { FaFacebookF, FaInstagram, FaTwitter, FaYoutube, FaWhatsapp } from 'react-icons/fa';
+import { useSettings } from '../../hooks/useSettings';
+import { categoryService } from '../../services/apiServices';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const { settings } = useSettings();
+  const [categories, setCategories] = useState([]);
+
+  // Footer category links come from the database, so a new category the admin
+  // creates is linked from the footer without a code change.
+  useEffect(() => {
+    categoryService.getCategories()
+      .then(({ data }) => setCategories((data?.data?.categories || []).filter((c) => !c.parent).slice(0, 5)))
+      .catch(() => setCategories([]));
+  }, []);
 
   const shopLinks = [
     { name: 'All Products', path: '/shop' },
-    { name: 'Categories', path: '/categories' },
-    { name: 'Brands', path: '/brands' },
-    { name: 'New Arrivals', path: '/shop?filter=new-arrivals' },
-    { name: 'Best Sellers', path: '/shop?filter=best-sellers' },
+    { name: 'New Arrivals', path: '/shop?isNewArrival=true' },
+    { name: 'Best Sellers', path: '/shop?isBestSeller=true' },
+    { name: 'Flash Deals', path: '/shop?isFlashDeal=true' },
+    ...categories.map((c) => ({ name: c.name, path: `/shop?category=${c._id}` })),
   ];
 
   const helpLinks = [
@@ -29,13 +42,14 @@ const Footer = () => {
     { name: 'Disclaimer', path: '/disclaimer' },
   ];
 
+  // Only render a social icon when the admin has actually set that link
   const socialLinks = [
-    { icon: FaFacebookF, href: '#', label: 'Facebook' },
-    { icon: FaInstagram, href: '#', label: 'Instagram' },
-    { icon: FaTwitter, href: '#', label: 'Twitter' },
-    { icon: FaYoutube, href: '#', label: 'YouTube' },
-    { icon: FaWhatsapp, href: '#', label: 'WhatsApp' },
-  ];
+    { icon: FaFacebookF, href: settings.socialLinks?.facebook, label: 'Facebook' },
+    { icon: FaInstagram, href: settings.socialLinks?.instagram, label: 'Instagram' },
+    { icon: FaTwitter, href: settings.socialLinks?.twitter, label: 'Twitter' },
+    { icon: FaYoutube, href: settings.socialLinks?.youtube, label: 'YouTube' },
+    { icon: FaWhatsapp, href: settings.socialLinks?.whatsapp, label: 'WhatsApp' },
+  ].filter((link) => Boolean(link.href));
 
   return (
     <footer className="bg-secondary-dark text-white">
@@ -71,7 +85,8 @@ const Footer = () => {
             <span className="text-2xl font-extrabold text-white">Living</span>
           </Link>
           <p className="text-white/60 text-sm leading-relaxed mb-5">
-            Everything Your Pet Deserves. Premium pet supplies for dogs, cats, and all your beloved companions.
+            {settings.tagline || 'Everything Your Pet Deserves.'} Premium pet supplies for dogs,
+            cats, and all your beloved companions.
           </p>
           <div className="flex items-center gap-3">
             {socialLinks.map((social) => (
@@ -128,17 +143,31 @@ const Footer = () => {
         <div>
           <h4 className="text-lg font-bold mb-4">Get in Touch</h4>
           <ul className="space-y-3.5">
+            {/* Contact details come from Settings so support can change them
+                without a deploy. Razorpay onboarding requires them to be public. */}
             <li className="flex items-start gap-3">
               <HiOutlineMail className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-              <span className="text-white/60 text-sm">support@aniliving.com</span>
+              <a
+                href={`mailto:${settings.contactEmail || 'support@aniliving.com'}`}
+                className="text-white/60 text-sm hover:text-primary transition-colors"
+              >
+                {settings.contactEmail || 'support@aniliving.com'}
+              </a>
             </li>
-            <li className="flex items-start gap-3">
-              <HiOutlinePhone className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-              <span className="text-white/60 text-sm">+91 XXXXXXXXXX</span>
-            </li>
+            {settings.contactPhone && (
+              <li className="flex items-start gap-3">
+                <HiOutlinePhone className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                <a
+                  href={`tel:${settings.contactPhone.replace(/\s+/g, '')}`}
+                  className="text-white/60 text-sm hover:text-primary transition-colors"
+                >
+                  {settings.contactPhone}
+                </a>
+              </li>
+            )}
             <li className="flex items-start gap-3">
               <HiOutlineLocationMarker className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-              <span className="text-white/60 text-sm">India</span>
+              <span className="text-white/60 text-sm">{settings.address || 'India'}</span>
             </li>
           </ul>
         </div>
@@ -148,7 +177,7 @@ const Footer = () => {
       <div className="border-t border-white/10">
         <div className="container-custom py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-white/40 text-sm">
-            © {currentYear} AniLiving. All rights reserved.
+            © {currentYear} {settings.siteName || 'AniLiving'}. All rights reserved.
           </p>
           <div className="flex flex-wrap items-center gap-4 text-xs text-white/40">
             {legalLinks.map((link) => (

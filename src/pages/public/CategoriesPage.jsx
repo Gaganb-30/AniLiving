@@ -1,38 +1,142 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { HiOutlineArrowRight } from 'react-icons/hi';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { categoryService } from '../../services/apiServices';
+import Seo, { breadcrumbSchema } from '../../components/seo/Seo';
 
-const categories = [
-  { name: 'Leashes & Harnesses', image: '🦮', color: 'from-blue-100 to-blue-50', count: 48 },
-  { name: 'Bowls & Feeders', image: '🥣', color: 'from-orange-100 to-orange-50', count: 36 },
-  { name: 'Collars & Tags', image: '📿', color: 'from-purple-100 to-purple-50', count: 52 },
-  { name: 'Toys & Enrichment', image: '🎾', color: 'from-green-100 to-green-50', count: 64 },
-  { name: 'Beds & Furniture', image: '🛏️', color: 'from-pink-100 to-pink-50', count: 28 },
-  { name: 'Grooming', image: '🪮', color: 'from-cyan-100 to-cyan-50', count: 41 },
-  { name: 'Food & Treats', image: '🦴', color: 'from-amber-100 to-amber-50', count: 73 },
-  { name: 'Health & Wellness', image: '💊', color: 'from-emerald-100 to-emerald-50', count: 25 },
-  { name: 'Clothing & Accessories', image: '👕', color: 'from-rose-100 to-rose-50', count: 34 },
-];
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { delay: i * 0.08, duration: 0.5, ease: 'easeOut' },
+  }),
+};
 
-const CategoriesPage = () => (
-  <div className="container-custom section-padding">
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-      <div className="section-title"><h2>All Categories</h2><p>Browse products by category.</p></div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-        {categories.map((cat, i) => (
-          <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <Link to={`/shop?category=${cat.name}`} className="group block bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-card transition-all hover:-translate-y-1">
-              <div className={`bg-gradient-to-br ${cat.color} h-40 flex items-center justify-center text-7xl group-hover:scale-110 transition-transform duration-300`}>{cat.image}</div>
-              <div className="p-5">
-                <h3 className="font-bold text-text text-lg group-hover:text-primary transition-colors">{cat.name}</h3>
-                <p className="text-sm text-text-muted mt-1">{cat.count} products</p>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
-      </div>
-      <p className="text-center text-text-muted mt-10 text-sm">Categories are dynamically loaded from the admin panel.</p>
-    </motion.div>
-  </div>
-);
+const CategoriesPage = () => {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await categoryService.getCategories();
+        setCategories(res.data?.data?.categories || []);
+      } catch (err) {
+        console.error('Failed to load categories:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadCategories();
+  }, []);
+
+  if (loading) return <LoadingSpinner size="lg" text="Loading categories…" />;
+
+  return (
+    <div className="container-custom section-padding">
+      <Seo
+        title="Shop by Category"
+        description="Browse every AniLiving category — food, treats, toys, grooming, health and accessories for dogs, cats and more."
+        canonical="/categories"
+        jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Categories', path: '/categories' }])}
+      />
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <div className="section-title" style={{ textAlign: 'left' }}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-text)' }}>Shop by Category</h1>
+          <p style={{ margin: 0, color: 'var(--color-text-muted)' }}>
+            Browse our curated collection of pet essentials by category.
+          </p>
+        </div>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gap: '1.5rem',
+        }}>
+          {categories.map((cat, i) => (
+            <motion.div key={cat._id} custom={i} initial="hidden" animate="visible" variants={fadeInUp}>
+              <Link
+                to={`/shop?category=${cat._id}`}
+                style={{
+                  display: 'flex', flexDirection: 'column',
+                  background: 'white', borderRadius: 'var(--radius-xl)',
+                  boxShadow: 'var(--shadow-soft)', overflow: 'hidden',
+                  textDecoration: 'none', transition: 'all 0.3s ease',
+                }}
+                className="category-page-card"
+              >
+                {/* Image */}
+                <div style={{
+                  height: '180px', background: 'var(--color-accent-light)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  overflow: 'hidden',
+                }}>
+                  {cat.image ? (
+                    <img src={cat.image} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontSize: '4rem' }}>🐾</span>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div style={{ padding: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text)', margin: '0 0 0.375rem' }}>
+                    {cat.name}
+                  </h3>
+                  {cat.description && (
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', margin: '0 0 0.75rem', lineHeight: 1.5 }}>
+                      {cat.description}
+                    </p>
+                  )}
+
+                  {/* Subcategories */}
+                  {cat.subcategories?.length > 0 && (
+                    <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                      {cat.subcategories.map((sub) => (
+                        <span key={sub._id} style={{
+                          fontSize: '0.6875rem', padding: '0.25rem 0.625rem',
+                          background: 'var(--color-accent-light)', borderRadius: 'var(--radius-full)',
+                          color: 'var(--color-primary)', fontWeight: 500,
+                        }}>
+                          {sub.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  }}>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-primary)' }}>
+                      Shop {cat.name}
+                    </span>
+                    <HiOutlineArrowRight style={{ color: 'var(--color-primary)', width: '16px' }} />
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+
+        {categories.length === 0 && (
+          <div className="empty-state">
+            <span className="empty-state-icon">📁</span>
+            <h3 className="empty-state-title">No categories yet</h3>
+            <p className="empty-state-description">Categories will appear here once they are added.</p>
+          </div>
+        )}
+      </motion.div>
+
+      <style>{`
+        .category-page-card:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--shadow-card);
+        }
+      `}</style>
+    </div>
+  );
+};
 
 export default CategoriesPage;

@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import Seo, { faqSchema, breadcrumbSchema } from '../../components/seo/Seo';
 const faqData = [
   { q: 'How do I place an order?', a: 'Browse our products, add items to your cart, proceed to checkout, fill in your shipping address, choose your payment method (Razorpay or Cash on Delivery), and place your order.' },
   { q: 'What payment methods do you accept?', a: 'We accept all major payment methods through Razorpay including UPI, Credit/Debit Cards, Net Banking, Wallets, and EMI. We also offer Cash on Delivery (COD).' },
@@ -11,6 +12,16 @@ const faqData = [
 ];
 const FAQPage = () => (
   <div className="container-custom section-padding">
+    {/* FAQPage structured data makes these questions eligible for rich results */}
+    <Seo
+      title="Frequently Asked Questions"
+      description="Answers to common questions about ordering, payment, delivery, returns and Cash on Delivery at AniLiving."
+      canonical="/faq"
+      jsonLd={[
+        faqSchema(faqData.map((f) => ({ question: f.q, answer: f.a }))),
+        breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'FAQ', path: '/faq' }]),
+      ]}
+    />
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <div className="section-title"><h2>Frequently Asked Questions</h2><p>Find answers to common questions about AniLiving.</p></div>
       <div className="max-w-3xl mx-auto space-y-4">

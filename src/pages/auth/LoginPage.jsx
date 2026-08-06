@@ -1,58 +1,131 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useState, useCallback } from 'react';
+import { Link, useNavigate, useLocation, useSearchParams, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
-import { setCredentials } from '../../redux/slices/authSlice';
-import api from '../../services/api';
+import { useForm } from 'react-hook-form';
+import { HiOutlineMail, HiOutlineLockClosed, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
+import Seo from '../../components/seo/Seo';
+import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
+import { useAuth } from '../../hooks/useAuth';
 
 const LoginPage = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { login, loginWithGoogle } = useAuth();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(''); setLoading(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const { register, handleSubmit, formState: { errors } } = useForm();
+
+  // Where to land after signing in: ?redirect=, router state, or the dashboard
+  const redirectTo = searchParams.get('redirect') || location.state?.from || '/dashboard';
+
+  const onSubmit = async (values) => {
+    setSubmitting(true);
     try {
-      const { data } = await api.post('/auth/login', form);
-      dispatch(setCredentials(data.data));
-      navigate(data.data.user.role === 'admin' ? '/admin' : '/');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
-    } finally { setLoading(false); }
+      const user = await login(values);
+      navigate(user.role === 'admin' && redirectTo === '/dashboard' ? '/admin' : redirectTo, { replace: true });
+    } catch {
+      setSubmitting(false);
+    }
   };
 
+  const handleGoogle = useCallback(async (credential) => {
+    setSubmitting(true);
+    try {
+      const user = await loginWithGoogle(credential);
+      navigate(user.role === 'admin' && redirectTo === '/dashboard' ? '/admin' : redirectTo, { replace: true });
+    } catch {
+      setSubmitting(false);
+    }
+  }, [loginWithGoogle, navigate, redirectTo]);
+
+  if (isAuthenticated) return <Navigate to={redirectTo} replace />;
+
   return (
-    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link to="/"><span className="text-3xl font-extrabold text-primary">Ani</span><span className="text-3xl font-extrabold text-secondary">Living</span></Link>
-          <h1 className="text-2xl font-bold text-text mt-6 mb-2">Welcome Back</h1>
-          <p className="text-text-muted text-sm">Sign in to your account</p>
+    <div className="container-custom section-padding">
+      <Seo
+        title="Sign in"
+        description="Sign in to your AniLiving account to track orders, manage your wishlist and check out faster."
+        canonical="/login"
+        noindex
+      />
+
+      <motion.div
+        className="auth-card"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+      >
+        <div className="auth-head">
+          <span className="auth-emoji">🐾</span>
+          <h1>Welcome back</h1>
+          <p>Sign in to continue shopping for your best friend.</p>
         </div>
-        <div className="bg-white rounded-2xl shadow-soft p-8">
-          {error && <div className="bg-error/10 text-error text-sm px-4 py-3 rounded-xl mb-4">{error}</div>}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-text-light mb-1 block">Email</label>
-              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:border-primary focus:outline-none transition-colors" placeholder="you@example.com" />
+
+        <form className="auth-form" onSubmit={handleSubmit(onSubmit)}>
+          <div className="form-field">
+            <label htmlFor="email">Email address</label>
+            <div className="input-with-icon">
+              <HiOutlineMail />
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                {...register('email', {
+                  required: 'Email is required',
+                  pattern: { value: /^\S+@\S+\.\S+$/, message: 'Enter a valid email address' },
+                })}
+              />
             </div>
-            <div>
-              <label className="text-sm font-medium text-text-light mb-1 block">Password</label>
-              <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:border-primary focus:outline-none transition-colors" placeholder="••••••••" />
+            {errors.email && <span className="form-error">{errors.email.message}</span>}
+          </div>
+
+          <div className="form-field">
+            <div className="form-label-row">
+              <label htmlFor="password">Password</label>
+              <Link to="/forgot-password" className="auth-link-sm">Forgot password?</Link>
             </div>
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer text-text-light"><input type="checkbox" className="accent-primary" /> Remember me</label>
-              <Link to="/forgot-password" className="text-primary font-medium hover:underline">Forgot password?</Link>
+            <div className="input-with-icon">
+              <HiOutlineLockClosed />
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                placeholder="Your password"
+                {...register('password', { required: 'Password is required' })}
+              />
+              <button
+                type="button"
+                className="input-toggle"
+                onClick={() => setShowPassword((s) => !s)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <HiOutlineEyeOff /> : <HiOutlineEye />}
+              </button>
             </div>
-            <button type="submit" disabled={loading} className="btn-primary w-full py-3 text-base disabled:opacity-50">{loading ? 'Signing in...' : 'Sign In'}</button>
-          </form>
-          <p className="text-center text-sm text-text-muted mt-6">Don't have an account? <Link to="/register" className="text-primary font-semibold hover:underline">Create one</Link></p>
-        </div>
+            {errors.password && <span className="form-error">{errors.password.message}</span>}
+          </div>
+
+          <button type="submit" className="btn-primary auth-submit" disabled={submitting}>
+            {submitting ? 'Signing in…' : 'Sign in'}
+          </button>
+        </form>
+
+        <div className="auth-divider"><span>or</span></div>
+
+        <GoogleSignInButton onCredential={handleGoogle} text="signin_with" />
+
+        <p className="auth-footer">
+          New to AniLiving? <Link to={`/register${searchParams.get('redirect') ? `?redirect=${searchParams.get('redirect')}` : ''}`}>Create an account</Link>
+        </p>
       </motion.div>
     </div>
   );
 };
+
 export default LoginPage;

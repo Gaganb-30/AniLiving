@@ -1,6 +1,6 @@
-import axios from 'axios';
-import { store } from '../redux/store';
-import { setAccessToken, logout } from '../redux/slices/authSlice';
+import axios from "axios";
+import { store } from "../redux/store";
+import { setAccessToken, logout } from "../redux/slices/authSlice";
 
 /**
  * Axios instance with:
@@ -9,11 +9,14 @@ import { setAccessToken, logout } from '../redux/slices/authSlice';
  * - Automatic token refresh on 401
  * - Credentials for HTTP-only cookies
  */
+const apiHost = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, "");
+const baseURL = apiHost ? `${apiHost}/api` : "/api";
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -27,7 +30,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Response interceptor: handle 401 and refresh token
@@ -53,7 +56,10 @@ api.interceptors.response.use(
     // If 401 and not already retrying
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Don't retry refresh-token or login requests
-      if (originalRequest.url?.includes('/auth/refresh-token') || originalRequest.url?.includes('/auth/login')) {
+      if (
+        originalRequest.url?.includes("/auth/refresh-token") ||
+        originalRequest.url?.includes("/auth/login")
+      ) {
         store.dispatch(logout());
         return Promise.reject(error);
       }
@@ -73,7 +79,11 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await axios.post('/api/auth/refresh-token', {}, { withCredentials: true });
+        const { data } = await api.post(
+          "/auth/refresh-token",
+          {},
+          { withCredentials: true },
+        );
         const newToken = data.data.accessToken;
         store.dispatch(setAccessToken(newToken));
         processQueue(null, newToken);
@@ -89,7 +99,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

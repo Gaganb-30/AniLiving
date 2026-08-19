@@ -10,7 +10,7 @@ import { Helmet } from 'react-helmet-async';
  */
 
 const SITE_NAME = 'AniLiving';
-const DEFAULT_DESCRIPTION = 'Shop premium pet supplies at AniLiving — food, toys, grooming and accessories for dogs, cats and every companion. Free delivery on prepaid orders.';
+const DEFAULT_DESCRIPTION = 'Shop premium pet supplies at AniLiving — food, toys, grooming and accessories for dogs and every companion. Free delivery on prepaid orders.';
 const DEFAULT_IMAGE = '/images/hero-banner.png';
 
 /** Absolute site origin; falls back to the browser origin during development */
@@ -85,7 +85,7 @@ export const organizationSchema = (settings = {}) => ({
   '@type': 'Organization',
   name: settings.siteName || SITE_NAME,
   url: siteUrl,
-  logo: absoluteUrl(settings.logo || '/favicon.svg'),
+  logo: absoluteUrl(settings.logo || '/logo.png'),
   description: settings.seo?.description || DEFAULT_DESCRIPTION,
   ...(settings.contactPhone && {
     contactPoint: {

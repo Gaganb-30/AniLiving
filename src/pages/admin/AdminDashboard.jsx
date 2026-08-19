@@ -44,14 +44,14 @@ const RevenueChart = ({ data = [] }) => {
     <svg viewBox={`0 0 ${width} ${height}`} className="admin-chart" role="img" aria-label="Revenue over the last 30 days">
       <defs>
         <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#F7931E" stopOpacity="0.28" />
-          <stop offset="100%" stopColor="#F7931E" stopOpacity="0" />
+          <stop offset="0%" stopColor="#FFD60A" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#FFD60A" stopOpacity="0" />
         </linearGradient>
       </defs>
       <path d={area} fill="url(#revFill)" />
-      <path d={line} fill="none" stroke="#F7931E" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+      <path d={line} fill="none" stroke="#FFD60A" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
       {points.map((p) => (
-        <circle key={p._id} cx={p.x} cy={p.y} r="3" fill="#fff" stroke="#F7931E" strokeWidth="2">
+        <circle key={p._id} cx={p.x} cy={p.y} r="3" fill="#fff" stroke="#FFD60A" strokeWidth="2">
           <title>{`${p._id}: ${formatCurrency(p.revenue)} from ${p.orders} order(s)`}</title>
         </circle>
       ))}

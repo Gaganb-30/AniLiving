@@ -38,7 +38,7 @@ const CategoriesPage = () => {
     <div className="container-custom section-padding">
       <Seo
         title="Shop by Category"
-        description="Browse every AniLiving category — food, treats, toys, grooming, health and accessories for dogs, cats and more."
+        description="Browse every AniLiving category — food, treats, toys, grooming, health and accessories for dogs and more."
         canonical="/categories"
         jsonLd={breadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Categories', path: '/categories' }])}
       />

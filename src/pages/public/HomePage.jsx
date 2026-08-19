@@ -8,7 +8,7 @@ import {
 } from 'react-icons/hi';
 import ProductCard, { ProductCardSkeleton } from '../../components/common/ProductCard';
 import Seo from '../../components/seo/Seo';
-import { productService, categoryService, brandService, bannerService } from '../../services/apiServices';
+import { productService, categoryService, bannerService } from '../../services/apiServices';
 import { useSettings } from '../../hooks/useSettings';
 
 const fadeInUp = {
@@ -52,7 +52,7 @@ const ProductRail = ({ title, subtitle, icon, products, loading, viewAllTo, skel
 
 const TESTIMONIALS = [
   { name: 'Ananya R.', pet: 'Labrador parent', rating: 5, text: 'Ordered on a Tuesday, food arrived Thursday morning. Bruno finishes his bowl now — that never happened with his old kibble.' },
-  { name: 'Karthik S.', pet: 'Two Persian cats', rating: 5, text: 'The litter I use is impossible to find locally. AniLiving stocks it and the price is better than the pet shop down my road.' },
+  { name: 'Karthik S.', pet: 'Golden Retriever parent', rating: 5, text: 'The treats I use are impossible to find locally. AniLiving stocks them and the price is better than the pet shop down my road.' },
   { name: 'Meera J.', pet: 'Beagle parent', rating: 4, text: 'Packaging was solid and the harness sizing guide was accurate. Support replied within an hour when I asked about a swap.' },
 ];
 
@@ -68,7 +68,7 @@ const HomePage = () => {
   const [trending, setTrending] = useState([]);
   const [flashDeals, setFlashDeals] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
+
 
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -102,9 +102,7 @@ const HomePage = () => {
       .catch(() => setCategories([]))
       .finally(() => setLoadingCategories(false));
 
-    brandService.getBrands()
-      .then(({ data }) => setBrands(data?.data?.brands || []))
-      .catch(() => setBrands([]));
+
 
     bannerService.getBanners()
       .then(({ data }) => setBanners(data?.data?.banners || []))
@@ -166,7 +164,7 @@ const HomePage = () => {
               </motion.h1>
 
               <motion.p variants={fadeInUp} custom={2} className="hero-subtitle">
-                {banner?.subtitle || 'Premium pet essentials for dogs and cats. Because they deserve the best.'}
+                {banner?.subtitle || 'Premium pet essentials for dogs. Because they deserve the best.'}
               </motion.p>
 
               <motion.div variants={fadeInUp} custom={3} className="hero-buttons">
@@ -228,10 +226,7 @@ const HomePage = () => {
               </AnimatePresence>
 
               <div className="hero-watermark">
-                <span>🐾</span>
-                <span style={{ color: '#F7931E' }}>Ani</span>
-                <span style={{ color: '#222' }}>Living</span>
-                <span style={{ fontSize: '1rem' }}>🐾</span>
+                <img src="/logo.png" alt="AniLiving" style={{ height: '3rem', opacity: 0.35 }} />
               </div>
             </motion.div>
           </div>
@@ -279,21 +274,6 @@ const HomePage = () => {
               </div>
             </motion.div>
 
-            <motion.div variants={fadeInUp} custom={1}>
-              <div className="shop-by-pet-card">
-                <div className="shop-by-pet-image">
-                  <img src="/images/cat-card.png" alt="Tabby cat" loading="lazy" />
-                </div>
-                <div className="shop-by-pet-content">
-                  <div className="shop-by-pet-icon"><HiOutlineShoppingCart /></div>
-                  <h3 className="shop-by-pet-title">Cats</h3>
-                  <p className="shop-by-pet-desc">Everything your cat needs, in one place.</p>
-                  <Link to="/shop?tags=cat" className="shop-by-pet-link">
-                    Shop for Cats <HiOutlineArrowRight />
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
           </div>
         </motion.div>
       </section>
@@ -391,35 +371,7 @@ const HomePage = () => {
         viewAllTo="/shop?isTrending=true"
       />
 
-      {/* ============================================================
-          SHOP BY BRAND
-          ============================================================ */}
-      {brands.length > 0 && (
-        <section className="container-custom section-padding" style={{ paddingTop: 0 }}>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <motion.div variants={fadeInUp} className="section-title">
-              <h2>Shop by Brand</h2>
-              <p>The names pet parents trust</p>
-            </motion.div>
 
-            <div className="brand-strip">
-              {brands.slice(0, 12).map((brand, i) => (
-                <motion.div key={brand._id} variants={fadeInUp} custom={i}>
-                  <Link to={`/shop?brand=${brand._id}`} className="brand-strip-item">
-                    {brand.logo
-                      ? <img src={brand.logo} alt={brand.name} loading="lazy" />
-                      : <span>{brand.name}</span>}
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-
-            <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-              <Link to="/brands" className="btn-view-all">View All Brands</Link>
-            </div>
-          </motion.div>
-        </section>
-      )}
 
       {/* ============================================================
           WHY CHOOSE ANILIVING

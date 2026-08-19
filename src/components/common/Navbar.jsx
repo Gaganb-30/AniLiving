@@ -18,8 +18,6 @@ import { useClickOutside } from '../../hooks/useDebounce';
 const STATIC_LINKS = [
   { name: 'Shop', path: '/shop' },
   { name: 'Categories', path: '/categories' },
-  { name: 'Brands', path: '/brands' },
-  { name: 'Track Order', path: '/track-order' },
   { name: 'About', path: '/about' },
   { name: 'Contact', path: '/contact' },
 ];
@@ -88,12 +86,8 @@ const Navbar = () => {
         <div className="container-custom navbar-inner">
           <Link to="/" className="navbar-logo" aria-label="AniLiving home">
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                <span className="navbar-logo-paw">🐾</span>
-                <span className="navbar-logo-ani">Ani</span>
-                <span className="navbar-logo-living">Living</span>
-              </div>
-              <div className="navbar-logo-tagline">Everything Your Pet Deserves</div>
+              <img src="/logo.png" alt="AniLiving" className="navbar-logo-img" />
+
             </div>
           </Link>
 
@@ -239,7 +233,7 @@ const Navbar = () => {
             </div>
 
             <div className="sub-nav-links">
-              {categories.slice(0, 4).map((category) => (
+              {categories.slice(0, 5).map((category) => (
                 <Link key={category._id} to={`/shop?category=${category._id}`} className="sub-nav-link">
                   {category.name}
                 </Link>

@@ -18,7 +18,7 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 const HomePage = lazy(() => import('./pages/public/HomePage'));
 const ShopPage = lazy(() => import('./pages/public/ShopPage'));
 const CategoriesPage = lazy(() => import('./pages/public/CategoriesPage'));
-const BrandsPage = lazy(() => import('./pages/public/BrandsPage'));
+
 const ProductDetailPage = lazy(() => import('./pages/public/ProductDetailPage'));
 const CartPage = lazy(() => import('./pages/public/CartPage'));
 const CheckoutPage = lazy(() => import('./pages/public/CheckoutPage'));
@@ -91,7 +91,7 @@ const router = createBrowserRouter([
       { index: true, element: <Page><HomePage /></Page> },
       { path: 'shop', element: <Page><ShopPage /></Page> },
       { path: 'categories', element: <Page><CategoriesPage /></Page> },
-      { path: 'brands', element: <Page><BrandsPage /></Page> },
+
       { path: 'product/:slug', element: <Page><ProductDetailPage /></Page> },
       { path: 'cart', element: <Page><CartPage /></Page> },
       { path: 'checkout', element: <Page><CheckoutPage /></Page> },
@@ -150,7 +150,7 @@ const router = createBrowserRouter([
       { path: 'products/:id', element: <Page><AdminProductForm /></Page> },
       { path: 'inventory', element: <Page><AdminInventory /></Page> },
       { path: 'categories', element: <Page><AdminCategories /></Page> },
-      { path: 'brands', element: <Page><AdminBrands /></Page> },
+
       { path: 'orders', element: <Page><AdminOrders /></Page> },
       { path: 'orders/:id', element: <Page><AdminOrderDetail /></Page> },
       { path: 'customers', element: <Page><AdminCustomers /></Page> },
@@ -177,7 +177,7 @@ function App() {
             fontSize: '14px',
             padding: '10px 16px',
           },
-          success: { iconTheme: { primary: '#F7931E', secondary: '#fff' } },
+          success: { iconTheme: { primary: '#FFD60A', secondary: '#fff' } },
         }}
       />
     </HelmetProvider>

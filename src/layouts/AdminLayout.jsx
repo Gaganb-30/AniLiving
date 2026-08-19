@@ -17,7 +17,6 @@ const ADMIN_LINKS = [
   { name: 'Inventory', path: '/admin/inventory', icon: HiOutlineClipboardList },
   { name: 'Orders', path: '/admin/orders', icon: HiOutlineArchive },
   { name: 'Categories', path: '/admin/categories', icon: HiOutlineCollection },
-  { name: 'Brands', path: '/admin/brands', icon: HiOutlineTag },
   { name: 'Customers', path: '/admin/customers', icon: HiOutlineUsers },
   { name: 'Reviews', path: '/admin/reviews', icon: HiOutlineStar },
   { name: 'Coupons', path: '/admin/coupons', icon: HiOutlineTicket },
@@ -49,8 +48,7 @@ const AdminLayout = () => {
   const sidebar = (
     <>
       <Link to="/" className="admin-brand">
-        <span className="admin-brand-ani">Ani</span>
-        <span className="admin-brand-living">Living</span>
+        <img src="/logo.png" alt="AniLiving" className="admin-brand-logo" />
         <span className="admin-brand-tag">Admin</span>
       </Link>
 

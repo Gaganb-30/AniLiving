@@ -12,7 +12,7 @@ import { formatCurrency, colorToCss, errorMessage } from '../../utils/format';
 
 const EMPTY_PRODUCT = {
   name: '', slug: '', shortDescription: '', longDescription: '', richDescription: '',
-  brand: '', category: '', subcategory: '', tags: [],
+  brand: '', category: '', subcategory: '', tags: '',
   price: '', mrp: '', costPrice: '', tax: 0,
   sku: '', barcode: '', stock: 0, availability: 'in_stock', lowStockAlert: 5,
   thumbnail: '', images: [], videoUrl: '',
@@ -56,7 +56,7 @@ const AdminProductForm = () => {
         setCategories(catRes.data.data.categories || []);
         setBrands(brandRes.data.data.brands || []);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -70,8 +70,15 @@ const AdminProductForm = () => {
           brand: p.brand || '',
           category: p.category || '',
           subcategory: p.subcategory || '',
+          // Store tags as a comma-separated string for editing
+          tags: (p.tags || []).join(', '),
           // The API stores specs as an object; the form edits them as rows
           specifications: Object.entries(p.specifications || {}).map(([key, value]) => ({ key, value })),
+          // Store attribute values as comma-separated strings for editing
+          attributes: (p.attributes || []).map((a) => ({
+            ...a,
+            values: (a.values || []).join(', '),
+          })),
           seo: { ...EMPTY_PRODUCT.seo, ...(p.seo || {}) },
           flashDealExpiry: p.flashDealExpiry ? p.flashDealExpiry.slice(0, 10) : '',
           variants: (p.variants || []).map((v) => ({
@@ -111,7 +118,14 @@ const AdminProductForm = () => {
    * the admin has already entered.
    */
   const generateVariants = () => {
-    const usable = form.attributes.filter((a) => a.name?.trim() && a.values?.length);
+    // Parse comma-separated value strings into arrays for variant generation
+    const parsed = form.attributes.map((a) => ({
+      ...a,
+      values: typeof a.values === 'string'
+        ? a.values.split(',').map((v) => v.trim()).filter(Boolean)
+        : (a.values || []),
+    }));
+    const usable = parsed.filter((a) => a.name?.trim() && a.values?.length);
     if (!usable.length) {
       toast.error('Add at least one attribute with values first.');
       return;
@@ -163,6 +177,16 @@ const AdminProductForm = () => {
 
     const payload = {
       ...form,
+      // Convert comma-separated strings back to arrays for the API
+      tags: typeof form.tags === 'string'
+        ? form.tags.split(',').map((t) => t.trim()).filter(Boolean)
+        : (form.tags || []).filter(Boolean),
+      attributes: (form.attributes || []).map((a) => ({
+        ...a,
+        values: typeof a.values === 'string'
+          ? a.values.split(',').map((v) => v.trim()).filter(Boolean)
+          : (a.values || []).filter(Boolean),
+      })),
       price: Number(form.price),
       mrp: form.mrp === '' ? undefined : Number(form.mrp),
       costPrice: form.costPrice === '' ? undefined : Number(form.costPrice),
@@ -307,8 +331,8 @@ const AdminProductForm = () => {
               <label htmlFor="tags">Tags</label>
               <input
                 id="tags"
-                value={(form.tags || []).join(', ')}
-                onChange={(e) => set({ tags: e.target.value.split(',').map((t) => t.trim()).filter(Boolean) })}
+                value={form.tags}
+                onChange={(e) => set({ tags: e.target.value })}
                 placeholder="dog, dry food, grain free"
               />
               <span className="form-hint">Comma separated. Tags power the tag filter and search.</span>
@@ -512,7 +536,7 @@ const AdminProductForm = () => {
                 <label>Attributes</label>
                 <button
                   type="button"
-                  onClick={() => set({ attributes: [...form.attributes, { name: '', values: [] }] })}
+                  onClick={() => set({ attributes: [...form.attributes, { name: '', values: '' }] })}
                 >
                   <HiOutlinePlus /> Add attribute
                 </button>
@@ -534,10 +558,10 @@ const AdminProductForm = () => {
                   />
                   <input
                     className="attribute-values"
-                    value={(attribute.values || []).join(', ')}
+                    value={attribute.values}
                     placeholder="Red, Blue, Black"
                     onChange={(e) => updateAttribute(index, {
-                      values: e.target.value.split(',').map((v) => v.trim()).filter(Boolean),
+                      values: e.target.value,
                     })}
                   />
                   <button

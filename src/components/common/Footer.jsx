@@ -81,12 +81,11 @@ const Footer = () => {
         {/* Brand */}
         <div>
           <Link to="/" className="inline-block mb-4">
-            <span className="text-2xl font-extrabold text-primary">Ani</span>
-            <span className="text-2xl font-extrabold text-white">Living</span>
+            <img src="/logo.png" alt="AniLiving" className="footer-logo-img ml-2" />
           </Link>
           <p className="text-white/60 text-sm leading-relaxed mb-5">
-            {settings.tagline || 'Everything Your Pet Deserves.'} Premium pet supplies for dogs,
-            cats, and all your beloved companions.
+            {settings.tagline || 'Everything Your Pet Deserves.'} Premium pet supplies for dogs
+            and all your beloved companions.
           </p>
           <div className="flex items-center gap-3">
             {socialLinks.map((social) => (

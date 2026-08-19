@@ -70,7 +70,7 @@ export const openRazorpayCheckout = async ({
       contact: order.shippingAddress?.phone || user?.phone || '',
     },
     notes: { orderId: order._id, orderNumber: order.orderNumber },
-    theme: { color: '#F7931E' },
+    theme: { color: '#FFD60A' },
     modal: {
       ondismiss: () => onDismiss?.(),
       confirm_close: true,

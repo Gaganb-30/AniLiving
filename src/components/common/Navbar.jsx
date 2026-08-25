@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   HiOutlineHeart, HiOutlineShoppingBag, HiOutlineUser,
   HiOutlineMenu, HiOutlineX, HiChevronDown, HiOutlineLogout,
-  HiOutlineClipboardList, HiOutlineCog,
+  HiOutlineClipboardList, HiOutlineCog, HiSparkles, HiOutlineFire,
 } from 'react-icons/hi';
 import { setMobileMenuOpen } from '../../redux/slices/uiSlice';
 import SearchBox from './SearchBox';
@@ -23,21 +23,35 @@ const STATIC_LINKS = [
 ];
 
 const Navbar = () => {
-  const dispatch = useDispatch();
-  const location = useLocation();
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
-  const { mobileMenuOpen } = useSelector((state) => state.ui);
   const { count: cartCount } = useCart();
   const { count: wishlistCount } = useWishlist();
-  const { logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
+  const dispatch = useDispatch();
+  const { mobileMenuOpen } = useSelector((state) => state.ui);
+  const location = useLocation();
 
-  const [scrolled, setScrolled] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [accountOpen, setAccountOpen] = useState(false);
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  const accountRef = useClickOutside(() => setAccountOpen(false), accountOpen);
   const categoryRef = useRef(null);
+  const accountRef = useRef(null);
+
+  useClickOutside(categoryRef, () => setCategoryMenuOpen(false));
+  useClickOutside(accountRef, () => setAccountOpen(false));
+
+  useEffect(() => {
+    categoryService.getCategories()
+      .then(({ data }) => setCategories(data?.data?.categories || []))
+      .catch(() => setCategories([]));
+  }, []);
+
+  useEffect(() => {
+    dispatch(setMobileMenuOpen(false));
+    setCategoryMenuOpen(false);
+    setAccountOpen(false);
+  }, [location.pathname, dispatch]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -45,26 +59,22 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Top-level categories drive the mega menu — nothing here is hardcoded, so a
-  // new category the admin creates appears in the nav automatically.
-  useEffect(() => {
-    categoryService.getCategories()
-      .then(({ data }) => setCategories((data.data?.categories || []).filter((c) => !c.parent)))
-      .catch(() => setCategories([]));
-  }, []);
-
-  // Close every popover on navigation
-  useEffect(() => {
-    dispatch(setMobileMenuOpen(false));
-    setAccountOpen(false);
-    setCategoryMenuOpen(false);
-  }, [location.pathname, location.search, dispatch]);
-
   // Lock body scroll while the mobile menu is open
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [mobileMenuOpen]);
+
+  const searchParams = new URLSearchParams(location.search);
+  const activeCategoryId = searchParams.get('category');
+  const isFlashDealActive = searchParams.get('isFlashDeal') === 'true';
+
+  const isStaticActive = (path) => {
+    if (path === '/shop') {
+      return location.pathname === '/shop' && !activeCategoryId && !isFlashDealActive;
+    }
+    return location.pathname === path;
+  };
 
   return (
     <>
@@ -87,7 +97,6 @@ const Navbar = () => {
           <Link to="/" className="navbar-logo" aria-label="AniLiving home">
             <div>
               <img src="/logo.png" alt="AniLiving" className="navbar-logo-img" />
-
             </div>
           </Link>
 
@@ -99,7 +108,7 @@ const Navbar = () => {
           <div className="navbar-actions">
             <Link
               to={isAuthenticated ? '/dashboard/wishlist' : '/wishlist'}
-              className="navbar-action-btn navbar-action-desktop"
+              className={`navbar-action-btn ${location.pathname.includes('wishlist') ? 'active' : ''}`}
               aria-label="Wishlist"
             >
               <HiOutlineHeart className="navbar-action-icon" />
@@ -107,7 +116,11 @@ const Navbar = () => {
               <span>Wishlist</span>
             </Link>
 
-            <Link to="/cart" className="navbar-action-btn" aria-label={`Cart, ${cartCount} items`}>
+            <Link
+              to="/cart"
+              className={`navbar-action-btn ${location.pathname === '/cart' ? 'active' : ''}`}
+              aria-label={`Cart, ${cartCount} items`}
+            >
               <HiOutlineShoppingBag className="navbar-action-icon" />
               {cartCount > 0 && (
                 <motion.span
@@ -127,13 +140,13 @@ const Navbar = () => {
               <div className="navbar-account" ref={accountRef}>
                 <button
                   type="button"
-                  className="navbar-action-btn navbar-action-desktop"
+                  className={`navbar-action-btn ${location.pathname.startsWith('/dashboard') ? 'active' : ''}`}
                   onClick={() => setAccountOpen((o) => !o)}
                   aria-expanded={accountOpen}
+                  aria-label="User Account"
                 >
                   <HiOutlineUser className="navbar-action-icon" />
                   <span>{user?.firstName || 'Account'}</span>
-                  <HiChevronDown className="navbar-account-chevron" />
                 </button>
 
                 <AnimatePresence>
@@ -161,7 +174,11 @@ const Navbar = () => {
                 </AnimatePresence>
               </div>
             ) : (
-              <Link to="/login" className="navbar-action-btn navbar-action-desktop" aria-label="Sign in">
+              <Link
+                to="/login"
+                className={`navbar-action-btn ${location.pathname === '/login' ? 'active' : ''}`}
+                aria-label="Sign in"
+              >
                 <HiOutlineUser className="navbar-action-icon" />
                 <span>Sign in</span>
               </Link>
@@ -189,65 +206,39 @@ const Navbar = () => {
         {/* ─── Sub navigation ─── */}
         <div className="sub-nav">
           <div className="container-custom sub-nav-inner">
-            <div
-              className="sub-nav-category"
-              ref={categoryRef}
-              onMouseEnter={() => setCategoryMenuOpen(true)}
-              onMouseLeave={() => setCategoryMenuOpen(false)}
-            >
-              <button
-                type="button"
-                className="sub-nav-category-btn"
-                onClick={() => setCategoryMenuOpen((o) => !o)}
-                aria-expanded={categoryMenuOpen}
-              >
-                <HiOutlineMenu />
-                Shop by Category
-                <HiChevronDown />
-              </button>
-
-              <AnimatePresence>
-                {categoryMenuOpen && categories.length > 0 && (
-                  <motion.div
-                    className="mega-menu"
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    {categories.map((category) => (
-                      <div key={category._id} className="mega-menu-col">
-                        <Link to={`/shop?category=${category._id}`} className="mega-menu-title">
-                          {category.name}
-                        </Link>
-                        {category.subcategories?.slice(0, 6).map((sub) => (
-                          <Link key={sub._id} to={`/shop?category=${sub._id}`} className="mega-menu-link">
-                            {sub.name}
-                          </Link>
-                        ))}
-                      </div>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
             <div className="sub-nav-links">
-              {categories.slice(0, 5).map((category) => (
-                <Link key={category._id} to={`/shop?category=${category._id}`} className="sub-nav-link">
-                  {category.name}
-                </Link>
-              ))}
+              {categories.slice(0, 6).map((category) => {
+                const isCatActive = location.pathname === '/shop' && activeCategoryId === category._id;
+                return (
+                  <Link
+                    key={category._id}
+                    to={`/shop?category=${category._id}`}
+                    className={`sub-nav-link ${isCatActive ? 'active' : ''}`}
+                  >
+                    {category.name}
+                  </Link>
+                );
+              })}
               {STATIC_LINKS.map((link) => (
-                <NavLink
+                <Link
                   key={link.path}
                   to={link.path}
-                  className={({ isActive }) => `sub-nav-link ${isActive ? 'active' : ''}`}
-                  end={link.path === '/shop'}
+                  className={`sub-nav-link ${isStaticActive(link.path) ? 'active' : ''}`}
                 >
                   {link.name}
-                </NavLink>
+                </Link>
               ))}
+            </div>
+
+            <div className="sub-nav-right">
+              <Link
+                to="/shop?isFlashDeal=true"
+                className={`sub-nav-deal-btn ${isFlashDealActive && location.pathname === '/shop' ? 'active' : ''}`}
+              >
+                <HiOutlineFire className="sub-nav-deal-icon" />
+                <span>Flash Deals</span>
+                <span className="sub-nav-deal-badge">Hot</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -297,27 +288,67 @@ const Navbar = () => {
                 {categories.length > 0 && (
                   <>
                     <span className="mobile-menu-heading">Categories</span>
-                    {categories.map((category) => (
-                      <Link key={category._id} to={`/shop?category=${category._id}`} className="mobile-menu-link">
-                        {category.name}
-                      </Link>
-                    ))}
+                    {categories.map((category) => {
+                      const isCatActive = location.pathname === '/shop' && activeCategoryId === category._id;
+                      return (
+                        <Link
+                          key={category._id}
+                          to={`/shop?category=${category._id}`}
+                          className={`mobile-menu-link ${isCatActive ? 'active' : ''}`}
+                        >
+                          {category.name}
+                        </Link>
+                      );
+                    })}
                   </>
                 )}
 
                 <span className="mobile-menu-heading">Explore</span>
                 {STATIC_LINKS.map((link) => (
-                  <Link key={link.path} to={link.path} className="mobile-menu-link">{link.name}</Link>
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`mobile-menu-link ${isStaticActive(link.path) ? 'active' : ''}`}
+                  >
+                    {link.name}
+                  </Link>
                 ))}
 
                 {isAuthenticated && (
                   <>
                     <span className="mobile-menu-heading">My account</span>
-                    <Link to="/dashboard" className="mobile-menu-link">Dashboard</Link>
-                    <Link to="/dashboard/orders" className="mobile-menu-link">My orders</Link>
-                    <Link to="/dashboard/wishlist" className="mobile-menu-link">Wishlist</Link>
-                    <Link to="/dashboard/addresses" className="mobile-menu-link">Addresses</Link>
-                    {user?.role === 'admin' && <Link to="/admin" className="mobile-menu-link">Admin panel</Link>}
+                    <Link
+                      to="/dashboard"
+                      className={`mobile-menu-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/dashboard/orders"
+                      className={`mobile-menu-link ${location.pathname === '/dashboard/orders' ? 'active' : ''}`}
+                    >
+                      My orders
+                    </Link>
+                    <Link
+                      to="/dashboard/wishlist"
+                      className={`mobile-menu-link ${location.pathname.includes('wishlist') ? 'active' : ''}`}
+                    >
+                      Wishlist
+                    </Link>
+                    <Link
+                      to="/dashboard/addresses"
+                      className={`mobile-menu-link ${location.pathname === '/dashboard/addresses' ? 'active' : ''}`}
+                    >
+                      Addresses
+                    </Link>
+                    {user?.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        className={`mobile-menu-link ${location.pathname.startsWith('/admin') ? 'active' : ''}`}
+                      >
+                        Admin panel
+                      </Link>
+                    )}
                     <button type="button" className="mobile-menu-link mobile-menu-signout" onClick={logout}>
                       Sign out
                     </button>

@@ -52,23 +52,23 @@ const Footer = () => {
   ].filter((link) => Boolean(link.href));
 
   return (
-    <footer className="bg-secondary-dark text-white">
+    <footer className="footer-root">
       {/* Newsletter */}
-      <div className="bg-secondary">
-        <div className="container-custom py-12 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div>
-            <h3 className="text-xl font-bold mb-1">Subscribe to Our Newsletter</h3>
-            <p className="text-white/70 text-sm">Get updates on new products, exclusive offers, and pet care tips.</p>
+      <div className="footer-newsletter">
+        <div className="container-custom footer-newsletter-inner">
+          <div className="footer-newsletter-text">
+            <h3 className="footer-newsletter-title">Subscribe to Our Newsletter</h3>
+            <p className="footer-newsletter-subtitle">Get updates on new products, exclusive offers, and pet care tips.</p>
           </div>
-          <form className="flex w-full md:w-auto" onSubmit={(e) => e.preventDefault()}>
+          <form className="footer-newsletter-form" onSubmit={(e) => e.preventDefault()}>
             <input
               type="email"
               placeholder="Your email address"
-              className="flex-1 md:w-72 px-5 py-3 rounded-l-full bg-white/10 border border-white/20 text-white placeholder:text-white/50 focus:outline-none focus:border-primary"
+              className="footer-newsletter-input"
             />
             <button
               type="submit"
-              className="px-6 py-3 bg-primary text-white font-semibold rounded-r-full hover:bg-primary-dark transition-colors whitespace-nowrap"
+              className="footer-newsletter-btn"
             >
               Subscribe
             </button>
@@ -77,39 +77,43 @@ const Footer = () => {
       </div>
 
       {/* Main Footer */}
-      <div className="container-custom py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+      <div className="container-custom footer-main-grid">
         {/* Brand */}
-        <div>
-          <Link to="/" className="inline-block mb-4">
-            <img src="/logo.png" alt="AniLiving" className="footer-logo-img ml-2" />
-          </Link>
-          <p className="text-white/60 text-sm leading-relaxed mb-5">
-            {settings.tagline || 'Everything Your Pet Deserves.'} Premium pet supplies for dogs
-            and all your beloved companions.
-          </p>
-          <div className="flex items-center gap-3">
-            {socialLinks.map((social) => (
-              <a
-                key={social.label}
-                href={social.href}
-                className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors"
-                aria-label={social.label}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <social.icon className="w-4 h-4" />
-              </a>
-            ))}
+        <div className="footer-col footer-col-brand">
+          <div className="footer-brand-container">
+            <Link to="/" className="footer-logo-link">
+              <img src="/logo.png" alt="AniLiving" className="footer-logo-img" />
+            </Link>
+            <div className="footer-brand-text">
+              <p className="footer-tagline">
+                {settings.tagline || 'Everything Your Pet Deserves.'} Premium pet supplies for dogs
+                and all your beloved companions.
+              </p>
+              <div className="footer-social-links">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    className="footer-social-icon"
+                    aria-label={social.label}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <social.icon className="footer-social-svg" />
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Shop */}
-        <div>
-          <h4 className="text-lg font-bold mb-4">Shop</h4>
-          <ul className="space-y-2.5">
+        <div className="footer-col">
+          <h4 className="footer-col-title">Shop</h4>
+          <ul className="footer-links-list">
             {shopLinks.map((link) => (
               <li key={link.path}>
-                <Link to={link.path} className="text-white/60 hover:text-primary transition-colors text-sm">
+                <Link to={link.path} className="footer-link">
                   {link.name}
                 </Link>
               </li>
@@ -118,19 +122,19 @@ const Footer = () => {
         </div>
 
         {/* Help */}
-        <div>
-          <h4 className="text-lg font-bold mb-4">Help & Info</h4>
-          <ul className="space-y-2.5">
+        <div className="footer-col">
+          <h4 className="footer-col-title">Help & Info</h4>
+          <ul className="footer-links-list">
             {helpLinks.map((link) => (
               <li key={link.path}>
-                <Link to={link.path} className="text-white/60 hover:text-primary transition-colors text-sm">
+                <Link to={link.path} className="footer-link">
                   {link.name}
                 </Link>
               </li>
             ))}
             {legalLinks.slice(0, 3).map((link) => (
               <li key={link.path}>
-                <Link to={link.path} className="text-white/60 hover:text-primary transition-colors text-sm">
+                <Link to={link.path} className="footer-link">
                   {link.name}
                 </Link>
               </li>
@@ -139,48 +143,46 @@ const Footer = () => {
         </div>
 
         {/* Contact */}
-        <div>
-          <h4 className="text-lg font-bold mb-4">Get in Touch</h4>
-          <ul className="space-y-3.5">
-            {/* Contact details come from Settings so support can change them
-                without a deploy. Razorpay onboarding requires them to be public. */}
-            <li className="flex items-start gap-3">
-              <HiOutlineMail className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+        <div className="footer-col footer-col-contact">
+          <h4 className="footer-col-title">Get in Touch</h4>
+          <ul className="footer-links-list footer-contact-list">
+            <li className="footer-contact-item">
+              <HiOutlineMail className="footer-contact-icon" />
               <a
                 href={`mailto:${settings.contactEmail || 'support@aniliving.com'}`}
-                className="text-white/60 text-sm hover:text-primary transition-colors"
+                className="footer-link"
               >
                 {settings.contactEmail || 'support@aniliving.com'}
               </a>
             </li>
             {settings.contactPhone && (
-              <li className="flex items-start gap-3">
-                <HiOutlinePhone className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+              <li className="footer-contact-item">
+                <HiOutlinePhone className="footer-contact-icon" />
                 <a
                   href={`tel:${settings.contactPhone.replace(/\s+/g, '')}`}
-                  className="text-white/60 text-sm hover:text-primary transition-colors"
+                  className="footer-link"
                 >
                   {settings.contactPhone}
                 </a>
               </li>
             )}
-            <li className="flex items-start gap-3">
-              <HiOutlineLocationMarker className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-              <span className="text-white/60 text-sm">{settings.address || 'India'}</span>
+            <li className="footer-contact-item">
+              <HiOutlineLocationMarker className="footer-contact-icon" />
+              <span className="footer-contact-text">{settings.address || 'India'}</span>
             </li>
           </ul>
         </div>
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-white/10">
-        <div className="container-custom py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-white/40 text-sm">
+      <div className="footer-bottom-bar">
+        <div className="container-custom footer-bottom-inner">
+          <p className="footer-copyright">
             © {currentYear} {settings.siteName || 'AniLiving'}. All rights reserved.
           </p>
-          <div className="flex flex-wrap items-center gap-4 text-xs text-white/40">
+          <div className="footer-legal-links">
             {legalLinks.map((link) => (
-              <Link key={link.path} to={link.path} className="hover:text-primary transition-colors">
+              <Link key={link.path} to={link.path} className="footer-legal-link">
                 {link.name}
               </Link>
             ))}

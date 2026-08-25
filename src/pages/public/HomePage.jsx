@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   HiOutlineArrowRight, HiOutlineTruck, HiOutlineShieldCheck,
-  HiOutlineHeart, HiOutlineShoppingCart, HiOutlineFire,
+  HiOutlineHeart, HiOutlineFire,
   HiOutlineBadgeCheck, HiOutlineCash, HiStar,
 } from 'react-icons/hi';
 import ProductCard, { ProductCardSkeleton } from '../../components/common/ProductCard';
+import AutoMarquee from '../../components/common/AutoMarquee';
 import Seo from '../../components/seo/Seo';
 import { productService, categoryService, bannerService } from '../../services/apiServices';
 import { useSettings } from '../../hooks/useSettings';
@@ -22,7 +23,7 @@ const fadeInUp = {
 const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
 
 /** A product rail — reused for flash deals, featured, new, best sellers, trending */
-const ProductRail = ({ title, subtitle, icon, products, loading, viewAllTo, skeletonCount = 4 }) => {
+const ProductRail = ({ title, subtitle, icon, products, loading, viewAllTo, skeletonCount = 4, marqueeSpeed = 30 }) => {
   if (!loading && (!products || products.length === 0)) return null;
 
   return (
@@ -36,15 +37,21 @@ const ProductRail = ({ title, subtitle, icon, products, loading, viewAllTo, skel
           {viewAllTo && <Link to={viewAllTo} className="btn-view-all rail-view-all">View all</Link>}
         </div>
 
-        <div className="product-grid">
-          {loading
-            ? Array.from({ length: skeletonCount }).map((_, i) => <ProductCardSkeleton key={i} />)
-            : products.map((product, i) => (
-              <motion.div key={product._id} variants={fadeInUp} custom={i}>
-                <ProductCard product={product} />
-              </motion.div>
-            ))}
-        </div>
+        {loading ? (
+          <div className="product-grid">
+            {Array.from({ length: skeletonCount }).map((_, i) => <ProductCardSkeleton key={i} />)}
+          </div>
+        ) : (
+          <AutoMarquee speed={marqueeSpeed} className="rail-marquee">
+            <div className="product-grid">
+              {products.map((product, i) => (
+                <motion.div key={product._id} variants={fadeInUp} custom={i}>
+                  <ProductCard product={product} />
+                </motion.div>
+              ))}
+            </div>
+          </AutoMarquee>
+        )}
       </motion.div>
     </section>
   );
@@ -164,7 +171,7 @@ const HomePage = () => {
               </motion.h1>
 
               <motion.p variants={fadeInUp} custom={2} className="hero-subtitle">
-                {banner?.subtitle || 'Premium pet essentials for dogs. Because they deserve the best.'}
+                {banner?.subtitle || 'Premium food, toys and accessories — free delivery on prepaid orders.'}
               </motion.p>
 
               <motion.div variants={fadeInUp} custom={3} className="hero-buttons">
@@ -224,10 +231,6 @@ const HomePage = () => {
                   </picture>
                 </motion.div>
               </AnimatePresence>
-
-              <div className="hero-watermark">
-                <img src="/logo.png" alt="AniLiving" style={{ height: '3rem', opacity: 0.35 }} />
-              </div>
             </motion.div>
           </div>
 
@@ -247,74 +250,46 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* ============================================================
-          SHOP BY PET
-          ============================================================ */}
-      <section className="container-custom section-padding">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-          <motion.div variants={fadeInUp} className="section-title">
-            <h2>✨ Shop by Pet ✨</h2>
-            <p>Everything specially curated for your furry companions</p>
-          </motion.div>
-
-          <div className="shop-by-pet-grid">
-            <motion.div variants={fadeInUp} custom={0}>
-              <div className="shop-by-pet-card">
-                <div className="shop-by-pet-image">
-                  <img src="/images/dog-card.png" alt="Golden retriever dog" loading="lazy" />
-                </div>
-                <div className="shop-by-pet-content">
-                  <div className="shop-by-pet-icon"><HiOutlineShoppingCart /></div>
-                  <h3 className="shop-by-pet-title">Dogs</h3>
-                  <p className="shop-by-pet-desc">Food, toys, grooming &amp; more for your best friend.</p>
-                  <Link to="/shop?tags=dog" className="shop-by-pet-link">
-                    Shop for Dogs <HiOutlineArrowRight />
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-
-          </div>
-        </motion.div>
-      </section>
 
       {/* ============================================================
           CATEGORIES
           ============================================================ */}
       <section className="container-custom section-padding" style={{ paddingTop: 0 }}>
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+        <motion.div initial="hidden" animate="visible" variants={stagger}>
           <motion.div variants={fadeInUp} className="section-title">
             <h2>✨ Popular Categories ✨</h2>
             <p>Top picks for your furry friends</p>
           </motion.div>
 
           {loadingCategories ? (
-            <div className="category-grid">
+            <motion.div className="category-grid" variants={stagger}>
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="category-card skeleton">
                   <div className="category-card-image skeleton-image" style={{ borderRadius: '50%' }} />
                   <div className="skeleton-line" style={{ width: '60%', height: '14px', margin: '0.5rem auto 0' }} />
                 </div>
               ))}
-            </div>
+            </motion.div>
           ) : (
-            <div className="category-grid">
-              {categories.slice(0, 10).map((cat, i) => (
-                <motion.div key={cat._id} variants={fadeInUp} custom={i}>
-                  <Link to={`/shop?category=${cat._id}`} className="category-circle-card">
-                    <div className="category-circle-image">
-                      {cat.image
-                        ? <img src={cat.image} alt={cat.name} loading="lazy" />
-                        : <span style={{ fontSize: '2rem' }}>🐾</span>}
-                    </div>
-                    <div className="category-circle-name">{cat.name}</div>
-                    {cat.productCount !== undefined && (
-                      <div className="category-circle-count">{cat.productCount} products</div>
-                    )}
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+            <AutoMarquee speed={22} className="categories-marquee">
+              <motion.div className="category-grid" variants={stagger}>
+                {categories.slice(0, 10).map((cat, i) => (
+                  <motion.div key={cat._id} variants={fadeInUp} custom={i}>
+                    <Link to={`/shop?category=${cat._id}`} className="category-circle-card">
+                      <div className="category-circle-image">
+                        {cat.image
+                          ? <img src={cat.image} alt={cat.name} loading="lazy" />
+                          : <span style={{ fontSize: '2rem' }}>🐾</span>}
+                      </div>
+                      <div className="category-circle-name">{cat.name}</div>
+                      {cat.productCount !== undefined && (
+                        <div className="category-circle-count">{cat.productCount} products</div>
+                      )}
+                    </Link>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AutoMarquee>
           )}
 
           <motion.div variants={fadeInUp} style={{ textAlign: 'center', marginTop: '2rem' }}>
@@ -333,6 +308,7 @@ const HomePage = () => {
         products={flashDeals}
         loading={false}
         viewAllTo="/shop?isFlashDeal=true"
+        marqueeSpeed={26}
       />
 
       <ProductRail
@@ -342,6 +318,7 @@ const HomePage = () => {
         products={featured}
         loading={loadingProducts}
         viewAllTo="/shop?isFeatured=true"
+        marqueeSpeed={28}
       />
 
       <ProductRail
@@ -351,6 +328,7 @@ const HomePage = () => {
         products={newArrivals}
         loading={false}
         viewAllTo="/shop?isNewArrival=true"
+        marqueeSpeed={26}
       />
 
       <ProductRail
@@ -360,6 +338,7 @@ const HomePage = () => {
         products={bestSellers}
         loading={false}
         viewAllTo="/shop?isBestSeller=true"
+        marqueeSpeed={30}
       />
 
       <ProductRail
@@ -369,6 +348,7 @@ const HomePage = () => {
         products={trending}
         loading={false}
         viewAllTo="/shop?isTrending=true"
+        marqueeSpeed={28}
       />
 
 
@@ -383,22 +363,25 @@ const HomePage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="trust-bar-grid"
           >
-            {[
-              { icon: '🐾', title: 'Loved by Pets', desc: 'Happy pets, happy pet parents', cls: 'pets' },
-              { icon: '🏆', title: 'Premium Quality', desc: 'Carefully selected trusted brands', cls: 'quality' },
-              { icon: '🛡️', title: 'Safe & Secure', desc: '100% secure payments', cls: 'secure' },
-              { icon: '🎧', title: 'Dedicated Support', desc: 'We are always here to help', cls: 'support' },
-            ].map((item, i) => (
-              <div key={i} className="trust-bar-item">
-                <div className={`trust-bar-icon ${item.cls}`}>{item.icon}</div>
-                <div>
-                  <div className="trust-bar-title">{item.title}</div>
-                  <div className="trust-bar-desc">{item.desc}</div>
-                </div>
+            <AutoMarquee speed={24} className="trustbar-marquee">
+              <div className="trust-bar-grid">
+                {[
+                  { icon: '🐾', title: 'Loved by Pets', desc: 'Happy pets, happy pet parents', cls: 'pets' },
+                  { icon: '🏆', title: 'Premium Quality', desc: 'Carefully selected trusted brands', cls: 'quality' },
+                  { icon: '🛡️', title: 'Safe & Secure', desc: '100% secure payments', cls: 'secure' },
+                  { icon: '🎧', title: 'Dedicated Support', desc: 'We are always here to help', cls: 'support' },
+                ].map((item, i) => (
+                  <div key={i} className="trust-bar-item">
+                    <div className={`trust-bar-icon ${item.cls}`}>{item.icon}</div>
+                    <div>
+                      <div className="trust-bar-title">{item.title}</div>
+                      <div className="trust-bar-desc">{item.desc}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </AutoMarquee>
           </motion.div>
         </div>
       </section>
@@ -413,20 +396,22 @@ const HomePage = () => {
             <p>Real reviews from the AniLiving community</p>
           </motion.div>
 
-          <div className="testimonial-grid">
-            {TESTIMONIALS.map((testimonial, i) => (
-              <motion.figure key={testimonial.name} variants={fadeInUp} custom={i} className="testimonial-card">
-                <div className="testimonial-stars">
-                  {Array.from({ length: testimonial.rating }).map((_, s) => <HiStar key={s} />)}
-                </div>
-                <blockquote>{testimonial.text}</blockquote>
-                <figcaption>
-                  <strong>{testimonial.name}</strong>
-                  <span>{testimonial.pet}</span>
-                </figcaption>
-              </motion.figure>
-            ))}
-          </div>
+          <AutoMarquee speed={32} className="testimonials-marquee">
+            <div className="testimonial-grid">
+              {TESTIMONIALS.map((testimonial, i) => (
+                <motion.figure key={testimonial.name} variants={fadeInUp} custom={i} className="testimonial-card">
+                  <div className="testimonial-stars">
+                    {Array.from({ length: testimonial.rating }).map((_, s) => <HiStar key={s} />)}
+                  </div>
+                  <blockquote>{testimonial.text}</blockquote>
+                  <figcaption>
+                    <strong>{testimonial.name}</strong>
+                    <span>{testimonial.pet}</span>
+                  </figcaption>
+                </motion.figure>
+              ))}
+            </div>
+          </AutoMarquee>
         </motion.div>
       </section>
 

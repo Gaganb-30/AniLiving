@@ -82,7 +82,7 @@ const Navbar = () => {
       <div className="top-bar">
         <div className="container-custom">
           <div className="top-bar-content">
-            <div className="top-bar-item"><span>🚚</span><span>Free delivery on prepaid orders</span></div>
+            <div className="top-bar-item"><span>🚚</span><span>Free delivery on all orders</span></div>
             <div className="top-bar-divider" />
             <div className="top-bar-item"><span>💳</span><span>COD available</span></div>
             <div className="top-bar-divider" />

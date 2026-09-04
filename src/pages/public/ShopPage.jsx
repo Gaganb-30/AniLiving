@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiOutlineAdjustments, HiX, HiChevronDown } from 'react-icons/hi';
 import ProductCard, { ProductCardSkeleton } from '../../components/common/ProductCard';
@@ -307,7 +307,7 @@ const ShopPage = () => {
     : facets?.categories?.find((c) => c._id === queryObject.category)?.name || 'All Products';
 
   return (
-    <div className="container-custom section-padding">
+    <div className="container-custom shop-page-container">
       <Seo
         title={heading}
         description="Browse the full AniLiving range of pet food, treats, toys, grooming essentials and accessories. Filter by brand, price and more."
@@ -318,27 +318,45 @@ const ShopPage = () => {
         ]}
       />
 
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-        <div className="section-title" style={{ textAlign: 'left' }}>
-          <h1 className="shop-heading">{heading}</h1>
-          <p className="shop-subheading">
-            {loading ? 'Finding the best picks…' : `${pagination.total} product${pagination.total === 1 ? '' : 's'} available`}
-          </p>
-        </div>
+      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+        {/* Sleek shop header banner card — bridges the navbar and product grid cleanly */}
+        <div className="shop-header-card">
+          <nav className="shop-breadcrumbs" aria-label="Breadcrumb">
+            <Link to="/" className="shop-breadcrumb-link">Home</Link>
+            <span className="shop-breadcrumb-sep">/</span>
+            <Link to="/shop" className="shop-breadcrumb-link">Shop</Link>
+            {heading && heading !== 'All Products' && (
+              <>
+                <span className="shop-breadcrumb-sep">/</span>
+                <span className="shop-breadcrumb-current">{heading}</span>
+              </>
+            )}
+          </nav>
 
-        {activeFilters.length > 0 && (
-          <div className="shop-active-filters">
-            {activeFilters.map((entry) => (
-              <span key={`${entry.key}-${entry.value}`} className="shop-filter-tag">
-                {entry.label}
-                <button type="button" onClick={() => removeFilter(entry)} aria-label={`Remove ${entry.label}`}>
-                  <HiX />
-                </button>
+          <div className="shop-header-main">
+            <div className="shop-title-row">
+              <h1 className="shop-heading">{heading}</h1>
+              <span className="shop-count-badge">
+                {loading ? 'Finding items…' : `${pagination.total} product${pagination.total === 1 ? '' : 's'}`}
               </span>
-            ))}
-            <button type="button" className="shop-clear-all" onClick={clearAll}>Clear all</button>
+            </div>
+
+            {activeFilters.length > 0 && (
+              <div className="shop-active-filters">
+                <span className="shop-active-label">Active filters:</span>
+                {activeFilters.map((entry) => (
+                  <span key={`${entry.key}-${entry.value}`} className="shop-filter-tag">
+                    {entry.label}
+                    <button type="button" onClick={() => removeFilter(entry)} aria-label={`Remove ${entry.label}`}>
+                      <HiX />
+                    </button>
+                  </span>
+                ))}
+                <button type="button" className="shop-clear-all" onClick={clearAll}>Clear all</button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         <div className="shop-layout">
           {/* Desktop sidebar */}

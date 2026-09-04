@@ -64,56 +64,80 @@ const CategoriesPage = () => {
                   background: 'white', borderRadius: 'var(--radius-xl)',
                   boxShadow: 'var(--shadow-soft)', overflow: 'hidden',
                   textDecoration: 'none', transition: 'all 0.3s ease',
+                  height: '100%',
                 }}
                 className="category-page-card"
               >
                 {/* Image */}
                 <div style={{
-                  height: '180px', background: 'var(--color-accent-light)',
+                  height: '240px', background: 'var(--color-accent-light)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  overflow: 'hidden',
+                  overflow: 'hidden', position: 'relative',
                 }}>
                   {cat.image ? (
-                    <img src={cat.image} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      className="category-page-card-img"
+                      style={{
+                        width: '100%', height: '100%',
+                        objectFit: 'cover', objectPosition: 'center',
+                        transition: 'transform 0.4s ease',
+                      }}
+                    />
                   ) : (
-                    <span style={{ fontSize: '4rem' }}>🐾</span>
+                    <span style={{ fontSize: '4.5rem' }}>🐾</span>
                   )}
                 </div>
 
                 {/* Content */}
-                <div style={{ padding: '1.25rem' }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-text)', margin: '0 0 0.375rem' }}>
+                <div style={{ padding: '1.125rem 1.25rem 0.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text)', margin: '0 0 0.375rem' }}>
                     {cat.name}
                   </h3>
                   {cat.description && (
-                    <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', margin: '0 0 0.75rem', lineHeight: 1.5 }}>
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', margin: '0 0 0.5rem', lineHeight: 1.45 }}>
                       {cat.description}
                     </p>
                   )}
 
                   {/* Subcategories */}
                   {cat.subcategories?.length > 0 && (
-                    <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginTop: '0.25rem', marginBottom: '0.25rem' }}>
                       {cat.subcategories.map((sub) => (
                         <span key={sub._id} style={{
                           fontSize: '0.6875rem', padding: '0.25rem 0.625rem',
-                          background: 'var(--color-accent-light)', borderRadius: 'var(--radius-full)',
-                          color: 'var(--color-primary)', fontWeight: 500,
+                          background: 'rgba(0, 71, 174, 0.08)', borderRadius: 'var(--radius-full)',
+                          color: '#0047ae', fontWeight: 500,
                         }}>
                           {sub.name}
                         </span>
                       ))}
                     </div>
                   )}
+                </div>
 
-                  <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  }}>
-                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-primary)' }}>
-                      Shop {cat.name}
-                    </span>
-                    <HiOutlineArrowRight style={{ color: 'var(--color-primary)', width: '16px' }} />
-                  </div>
+                {/* Full-width #0047ae bottom strip */}
+                <div
+                  className="category-card-strip"
+                  style={{
+                    backgroundColor: '#0047ae',
+                    padding: '0.8125rem 1.25rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    marginTop: '0.25rem',
+                    transition: 'background-color 0.2s ease',
+                  }}
+                >
+                  <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-primary)' }}>
+                    Shop {cat.name}
+                  </span>
+                  <HiOutlineArrowRight
+                    className="category-strip-arrow"
+                    style={{ color: 'var(--color-primary)', width: '18px', height: '18px', transition: 'transform 0.2s ease' }}
+                  />
                 </div>
               </Link>
             </motion.div>
@@ -133,6 +157,15 @@ const CategoriesPage = () => {
         .category-page-card:hover {
           transform: translateY(-4px);
           box-shadow: var(--shadow-card);
+        }
+        .category-page-card:hover .category-page-card-img {
+          transform: scale(1.05);
+        }
+        .category-page-card:hover .category-card-strip {
+          background-color: #00378a;
+        }
+        .category-page-card:hover .category-strip-arrow {
+          transform: translateX(4px);
         }
       `}</style>
     </div>

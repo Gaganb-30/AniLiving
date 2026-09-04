@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { HiPlay, HiPause } from 'react-icons/hi';
 
 /**
  * AutoMarquee component — provides a smooth, continuous auto-moving marquee on mobile
@@ -9,13 +10,19 @@ const AutoMarquee = ({
   speed = 28,
   reverse = false,
   pauseOnHover = true,
+  showControls = false,
   className = '',
 }) => {
+  const [isPaused, setIsPaused] = useState(false);
+
   return (
-    <div className={`auto-marquee-wrapper ${pauseOnHover ? 'pause-on-hover' : ''} ${className}`}>
+    <div className={`auto-marquee-wrapper ${pauseOnHover ? 'pause-on-hover' : ''} ${isPaused ? 'is-paused' : ''} ${className}`}>
       <div
         className={`auto-marquee-track ${reverse ? 'reverse' : ''}`}
-        style={{ '--marquee-duration': `${speed}s` }}
+        style={{
+          '--marquee-duration': `${speed}s`,
+          animationPlayState: isPaused ? 'paused' : undefined,
+        }}
       >
         <div className="auto-marquee-content">
           {children}
@@ -24,6 +31,20 @@ const AutoMarquee = ({
           {children}
         </div>
       </div>
+
+      {showControls && (
+        <div className="marquee-control-bar">
+          <button
+            type="button"
+            className={`marquee-toggle-btn ${isPaused ? 'is-paused' : ''}`}
+            onClick={() => setIsPaused((prev) => !prev)}
+            aria-label={isPaused ? 'Resume auto-scroll' : 'Pause auto-scroll'}
+          >
+            {isPaused ? <HiPlay className="marquee-toggle-icon" /> : <HiPause className="marquee-toggle-icon" />}
+            <span>{isPaused ? 'Resume' : 'Pause'}</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

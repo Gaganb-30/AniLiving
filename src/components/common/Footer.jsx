@@ -30,7 +30,7 @@ const Footer = () => {
     { name: 'About Us', path: '/about' },
     { name: 'Contact Us', path: '/contact' },
     { name: 'FAQ', path: '/faq' },
-    { name: 'Track Order', path: '/track-order' },
+    // { name: 'Track Order', path: '/track-order' },
   ];
 
   const legalLinks = [
@@ -53,28 +53,6 @@ const Footer = () => {
 
   return (
     <footer className="footer-root">
-      {/* Newsletter */}
-      <div className="footer-newsletter">
-        <div className="container-custom footer-newsletter-inner">
-          <div className="footer-newsletter-text">
-            <h3 className="footer-newsletter-title">Subscribe to Our Newsletter</h3>
-            <p className="footer-newsletter-subtitle">Get updates on new products, exclusive offers, and pet care tips.</p>
-          </div>
-          <form className="footer-newsletter-form" onSubmit={(e) => e.preventDefault()}>
-            <input
-              type="email"
-              placeholder="Your email address"
-              className="footer-newsletter-input"
-            />
-            <button
-              type="submit"
-              className="footer-newsletter-btn"
-            >
-              Subscribe
-            </button>
-          </form>
-        </div>
-      </div>
 
       {/* Main Footer */}
       <div className="container-custom footer-main-grid">

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ============================================================
-   AniLiving Design System — S1 Redesign Theme
+   AniLiving Design System ΓÇö S1 Redesign Theme
    Color Palette: Bright Yellow primary + Navy accents + Warm cream
    ============================================================ */
 
@@ -10,9 +10,9 @@
   --color-primary: #FFD60A;
   --color-primary-light: #FFE44D;
   --color-primary-dark: #E6BF00;
-  --color-secondary: #1B2A4A;
-  --color-secondary-light: #2C3E6B;
-  --color-secondary-dark: #0F1A30;
+  --color-secondary: #0047ae;
+  --color-secondary-light: #1A5BC4;
+  --color-secondary-dark: #00378a;
   --color-accent: #FFF3CC;
   --color-accent-light: #FFFBE6;
   --color-background: #FFFFFF;
@@ -26,8 +26,8 @@
   --color-error: #EF4444;
   --color-warning: #F59E0B;
   --color-info: #3B82F6;
-  --color-navy: #1B2A4A;
-  --color-navy-light: #2C3E6B;
+  --color-navy: #0047ae;
+  --color-navy-light: #1A5BC4;
 
   /* Font Family */
   --font-sans: 'Poppins', 'Segoe UI', system-ui, sans-serif;
@@ -192,7 +192,7 @@ body {
   gap: 0.5rem;
   padding: 0.75rem 1.75rem;
   background-color: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
   border: none;
   border-radius: var(--radius-full);
   font-weight: 600;
@@ -286,7 +286,7 @@ body {
    ============================================================ */
 .top-bar {
   background-color: var(--color-secondary);
-  color: white;
+  color: #ffffff;
   font-size: 0.8125rem;
   padding: 0.5rem 0;
   letter-spacing: 0.02em;
@@ -406,7 +406,7 @@ body {
   height: 36px;
   border-radius: 50%;
   background-color: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
   border: none;
   display: flex;
   align-items: center;
@@ -443,7 +443,7 @@ body {
   position: relative;
 }
 
-/* Hamburger menu toggle — visible only on mobile */
+/* Hamburger menu toggle ΓÇö visible only on mobile */
 .navbar-mobile-toggle {
   display: flex;
 }
@@ -466,7 +466,7 @@ body {
 }
 
 .navbar-action-btn:hover {
-  color: var(--color-primary);
+  color: #0047ae;
   background-color: var(--color-accent-light);
 }
 
@@ -484,7 +484,7 @@ body {
   height: 18px;
   border-radius: 50%;
   background-color: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
   font-size: 0.625rem;
   font-weight: 700;
   display: flex;
@@ -497,7 +497,7 @@ body {
   display: none;
   padding: 0.625rem 1.5rem;
   background-color: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
   border: none;
   border-radius: var(--radius-full);
   font-weight: 600;
@@ -554,7 +554,7 @@ body {
   padding: 0.375rem 0.875rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.82);
+  color: #ffffff;
   text-decoration: none;
   white-space: nowrap;
   border-radius: var(--radius-full);
@@ -570,7 +570,7 @@ body {
 }
 
 .sub-nav-link.active {
-  color: #1B2A4A;
+  color: #0047ae;
   background: var(--color-primary);
   font-weight: 700;
   box-shadow: 0 2px 8px rgba(255, 214, 10, 0.25);
@@ -589,7 +589,7 @@ body {
   gap: 0.375rem;
   padding: 0.35rem 0.875rem;
   background: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
   font-size: 0.8125rem;
   font-weight: 700;
   border-radius: var(--radius-full);
@@ -755,10 +755,11 @@ body {
 .hero-heading {
   font-size: 2rem;
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.2;
   color: #1a1a2e;
   margin-bottom: 0.5rem;
   letter-spacing: -0.02em;
+  min-height: 2.4em; /* Reserves 2 lines so 1-line and 2-line titles have uniform height */
 }
 
 @media (min-width: 768px) {
@@ -797,6 +798,7 @@ body {
   margin-bottom: 0.875rem;
   max-width: 480px;
   line-height: 1.6;
+  min-height: 3.2em; /* Reserves 2 lines so subtitle variations have uniform height */
 }
 
 .hero-buttons {
@@ -873,25 +875,110 @@ body {
   pointer-events: none;
 }
 
-.hero-image-frame {
+.hero-carousel-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  height: 350px;
   border-radius: 1.75rem;
   overflow: hidden;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.hero-image-frame {
+  width: 100%;
+  height: 100%;
+  border-radius: 1.75rem;
+  overflow: hidden;
   display: block;
+}
+
+.hero-image-frame picture {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .hero-image-container img {
   width: 100%;
   max-width: 100%;
-  height: auto;
+  height: 100%;
   object-fit: cover;
-  max-height: 350px;
+  display: block;
   position: relative;
   border-radius: 1.75rem;
 }
 
+.hero-carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0047ae;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.hero-carousel-arrow:hover {
+  background: #0047ae;
+  color: #ffffff;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 18px rgba(0, 71, 174, 0.35);
+}
+
+.hero-carousel-prev {
+  left: 12px;
+}
+
+.hero-carousel-next {
+  right: 12px;
+}
+
+.hero-carousel-dots-overlay {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  border-radius: 9999px;
+  z-index: 10;
+}
+
+.hero-carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.hero-carousel-dot.active {
+  width: 22px;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  box-shadow: 0 0 8px rgba(255, 214, 10, 0.6);
+}
+
 /* ============================================================
-   Category Grid & Cards (Circular) — Mobile Marquee / Desktop Grid
+   Category Grid & Cards (Circular) ΓÇö Mobile Marquee / Desktop Grid
    ============================================================ */
 .category-grid {
   display: flex !important;
@@ -1151,7 +1238,7 @@ body {
 .newsletter-form button {
   padding: 0.75rem 1.5rem;
   background-color: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
   border: none;
   border-radius: 0 var(--radius-full) var(--radius-full) 0;
   font-weight: 600;
@@ -1174,7 +1261,7 @@ body {
 /* Decorative paw prints for newsletter */
 .newsletter-section::before,
 .newsletter-section::after {
-  content: '🐾';
+  content: '≡ƒÉ╛';
   position: absolute;
   font-size: 3rem;
   opacity: 0.08;
@@ -1224,7 +1311,7 @@ body {
    Footer
    ============================================================ */
 .footer {
-  background-color: #1B2A4A;
+  background-color: #0047ae;
   color: white;
 }
 
@@ -1353,7 +1440,7 @@ body {
   height: 44px;
   border-radius: 50%;
   background-color: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
   border: none;
   display: flex;
   align-items: center;
@@ -1448,7 +1535,7 @@ body {
 
 .btn-view-all:hover {
   background-color: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
 }
 
 /* ============================================================
@@ -1624,7 +1711,7 @@ body {
   border: none;
   border-radius: var(--radius-sm);
   background: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
@@ -1892,7 +1979,7 @@ body {
 .pagination-btn.active {
   background-color: var(--color-primary);
   border-color: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
 }
 
 .pagination-btn:disabled {
@@ -1994,23 +2081,140 @@ body {
   cursor: pointer;
 }
 
+/* ============================================================
+   Shop Page Layout & Header Card
+   ============================================================ */
+.shop-page-container {
+  padding-top: 1.25rem;
+  padding-bottom: 4rem;
+}
+
+@media (min-width: 768px) {
+  .shop-page-container {
+    padding-top: 1.5rem;
+    padding-bottom: 5rem;
+  }
+}
+
+.shop-header-card {
+  background: linear-gradient(135deg, #FFFDF8 0%, #FFF8EA 100%);
+  border: 1px solid rgba(255, 214, 10, 0.45);
+  border-radius: var(--radius-xl);
+  padding: 1.15rem 1.5rem;
+  margin-bottom: 1.35rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+  position: relative;
+  overflow: hidden;
+}
+
+.shop-header-card::after {
+  content: '🐾';
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 3rem;
+  opacity: 0.14;
+  pointer-events: none;
+}
+
+.shop-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.shop-breadcrumb-link {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.shop-breadcrumb-link:hover {
+  color: var(--color-secondary);
+}
+
+.shop-breadcrumb-sep {
+  color: #CBD5E1;
+  font-size: 0.75rem;
+}
+
+.shop-breadcrumb-current {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.shop-header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.shop-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.shop-heading {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+@media (min-width: 768px) {
+  .shop-heading {
+    font-size: 2rem;
+  }
+}
+
+.shop-count-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  background: var(--color-secondary);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 6px rgba(0, 71, 174, 0.2);
+}
+
 .shop-active-filters {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin: 0.2rem 0 0;
+}
+
+.shop-active-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-right: 0.15rem;
 }
 
 .shop-filter-tag {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.25rem 0.75rem;
-  background: var(--color-accent-light);
+  padding: 0.25rem 0.65rem;
+  background: #ffffff;
+  border: 1px solid rgba(0, 71, 174, 0.2);
   border-radius: var(--radius-full);
   font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-primary);
+  font-weight: 600;
+  color: var(--color-secondary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .shop-filter-tag button {
@@ -2018,9 +2222,34 @@ body {
   border: none;
   cursor: pointer;
   font-size: 0.875rem;
-  color: var(--color-primary);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 0;
   line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.shop-filter-tag button:hover {
+  color: var(--color-error);
+}
+
+.shop-clear-all {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-error);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.shop-clear-all:hover {
+  background: rgba(239, 68, 68, 0.08);
+  text-decoration: underline;
 }
 
 /* Brand card (for Brands page) */
@@ -2076,7 +2305,7 @@ body {
 
 /* ============================================================
    ============================================================
-   PHASE 2 — Storefront + Admin styles
+   PHASE 2 ΓÇö Storefront + Admin styles
    Everything below was added alongside the full backend build:
    colour-variant cards, working filters, cart/checkout, the user
    dashboard, order tracking and the admin panel. It sits after the
@@ -2140,7 +2369,7 @@ body {
 }
 
 /* ------------------------------------------------------------
-   Buttons — size + intent variants
+   Buttons ΓÇö size + intent variants
    ------------------------------------------------------------ */
 .btn-sm {
   padding: 0.5rem 1rem !important;
@@ -2266,7 +2495,7 @@ body {
 }
 
 /* ------------------------------------------------------------
-   Forms — shared by checkout, dashboard and admin
+   Forms ΓÇö shared by checkout, dashboard and admin
    ------------------------------------------------------------ */
 .form-field {
   display: flex;
@@ -2509,7 +2738,7 @@ body {
 }
 
 /* ------------------------------------------------------------
-   Hero — mobile refinements
+   Hero ΓÇö mobile refinements
    The banner used to be hidden below 1024px, which wasted the
    space entirely; now it shows as a short, capped strip so it
    never swallows the first screen on a phone.
@@ -2533,11 +2762,15 @@ body {
 
   .hero-heading {
     font-size: 1.75rem;
+    line-height: 1.2;
+    min-height: 2.4em; /* Exactly 2 lines on mobile so 1-line and 2-line titles don't change height */
     margin-bottom: 0.625rem;
   }
 
   .hero-subtitle {
     font-size: 0.9375rem;
+    line-height: 1.6;
+    min-height: 3.2em; /* Exactly 2 lines on mobile */
     margin-bottom: 1rem;
   }
 
@@ -2562,20 +2795,34 @@ body {
     display: none;
   }
 
+  .hero-carousel-wrapper {
+    height: 190px;
+    border-radius: var(--radius-lg);
+  }
+
   .hero-image-frame {
+    width: 100%;
+    height: 100%;
     border-radius: var(--radius-lg);
     overflow: hidden;
+  }
+
+  .hero-image-frame picture {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 
   .hero-image-container img {
     width: 100%;
     max-width: 100%;
-    height: auto;
-    max-height: 190px;
-    /* the key fix: a strip, not a full screen */
+    height: 100%;
+    max-height: none;
+    /* the key fix: consistent fixed height, not changing between slides */
     object-fit: cover;
     object-position: center 35%;
     display: block;
+    border-radius: var(--radius-lg);
   }
 
   .hero-watermark {
@@ -2597,8 +2844,8 @@ body {
 }
 
 @media (max-width: 380px) {
-  .hero-image-container img {
-    max-height: 150px;
+  .hero-carousel-wrapper {
+    height: 150px;
   }
 
   .hero-heading {
@@ -2621,7 +2868,7 @@ body {
 }
 
 /* ------------------------------------------------------------
-   Product card — colour swatches, wishlist, brand line
+   Product card ΓÇö colour swatches, wishlist, brand line
    ------------------------------------------------------------ */
 .product-card {
   position: relative;
@@ -3266,7 +3513,7 @@ body {
 }
 
 /* ------------------------------------------------------------
-   Shop page — filters, drawer, chips
+   Shop page ΓÇö filters, drawer, chips
    ------------------------------------------------------------ */
 .shop-heading {
   font-size: 1.5rem;
@@ -3387,7 +3634,7 @@ body {
 
 .shop-price-apply:hover {
   background: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
 }
 
 .shop-tag-cloud {
@@ -4763,7 +5010,7 @@ body {
 
 .cart-coupon button:hover:not(:disabled) {
   background: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
 }
 
 .cart-coupon button:disabled {
@@ -5043,7 +5290,7 @@ body {
   font-size: 0.625rem;
   text-transform: uppercase;
   background: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
   padding: 0.1rem 0.4rem;
   border-radius: var(--radius-full);
   font-weight: 700;
@@ -5641,7 +5888,7 @@ body {
 
 .track-timeline li.is-done .track-timeline-dot {
   background: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
 }
 
 .track-timeline-dot svg {
@@ -6399,7 +6646,7 @@ body {
 
 .admin-nav-link.is-active {
   background: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
   font-weight: 600;
 }
 
@@ -6490,7 +6737,7 @@ body {
   height: 34px;
   border-radius: 50%;
   background: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7993,7 +8240,7 @@ body {
 
 
 /* ============================================================
-   RESPONSIVE FIX — Navbar search wrappers
+   RESPONSIVE FIX ΓÇö Navbar search wrappers
    ============================================================ */
 .navbar-search-wrap {
   flex: 1;
@@ -8143,13 +8390,13 @@ body {
 .drawer-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 26, 48, 0.45);
+  background: rgba(0, 35, 90, 0.45);
   backdrop-filter: blur(2px);
   z-index: 90;
 }
 
 /* ============================================================
-   Mobile Menu (Slide-out Drawer — Colourful Navy & Yellow Theme)
+   Mobile Menu (Slide-out Drawer ΓÇö Colourful Navy & Yellow Theme)
    ============================================================ */
 .mobile-menu {
   position: fixed;
@@ -8158,7 +8405,7 @@ body {
   bottom: 0;
   width: 300px;
   max-width: 85vw;
-  background: #142038;
+  background: #0047ae;
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -8171,7 +8418,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 1.125rem 1rem;
-  background: #0E172A;
+  background: #00378a;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   gap: 0.75rem;
 }
@@ -8211,7 +8458,7 @@ body {
   height: 40px;
   border-radius: 50%;
   background: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8238,12 +8485,12 @@ body {
 
 .mobile-menu-close:hover {
   background: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
 }
 
 .mobile-menu-head .btn-primary {
   background: var(--color-primary) !important;
-  color: #1B2A4A !important;
+  color: #0047ae !important;
   font-weight: 700 !important;
   border-radius: var(--radius-full) !important;
   padding: 0.5rem 1rem !important;
@@ -8288,7 +8535,7 @@ body {
 
 .mobile-menu-link.active {
   background: var(--color-primary) !important;
-  color: #1B2A4A !important;
+  color: #0047ae !important;
   font-weight: 700 !important;
   border-radius: var(--radius-md);
   margin: 0.15rem 0.75rem;
@@ -8297,8 +8544,14 @@ body {
 }
 
 .navbar-action-btn.active {
-  color: var(--color-primary) !important;
-  background-color: var(--color-accent-light);
+  color: #0047ae !important;
+  background-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.navbar-action-btn.active .navbar-action-badge {
+  background-color: #0047ae;
+  color: #ffffff;
 }
 
 .mobile-menu-signout {
@@ -8309,17 +8562,17 @@ body {
 }
 
 /* ============================================================
-   Footer — full layout with dedicated classes
+   Footer ΓÇö full layout with dedicated classes
    ============================================================ */
 .footer-root {
-  background-color: #0F1A30;
-  color: white;
+  background-color: #0047ae;
+  color: #ffffff;
   margin-top: auto;
 }
 
 /* Newsletter */
 .footer-newsletter {
-  background-color: var(--color-secondary);
+  background-color: #0047ae;
 }
 
 .footer-newsletter-inner {
@@ -8409,7 +8662,7 @@ body {
 .footer-newsletter-btn {
   padding: 0.625rem 1.25rem;
   background-color: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
   font-weight: 600;
   font-size: 0.8125rem;
   border-radius: 0 9999px 9999px 0;
@@ -8430,7 +8683,7 @@ body {
   background-color: var(--color-primary-dark);
 }
 
-/* Main footer grid — 2-column on mobile for efficient width & compact height */
+/* Main footer grid ΓÇö 2-column on mobile for efficient width & compact height */
 .footer-main-grid {
   padding-top: 1.75rem;
   padding-bottom: 1.75rem;
@@ -8502,7 +8755,7 @@ body {
 }
 
 .footer-tagline {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.8125rem;
   line-height: 1.4;
   margin-bottom: 0.5rem;
@@ -8535,7 +8788,7 @@ body {
   font-size: 0.9375rem;
   font-weight: 700;
   margin-bottom: 0.625rem;
-  color: white;
+  color: #ffffff;
 }
 
 @media (min-width: 768px) {
@@ -8561,7 +8814,7 @@ body {
 }
 
 .footer-link {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
   font-size: 0.8125rem;
   transition: color 0.2s;
@@ -8614,7 +8867,7 @@ body {
 
 .footer-social-icon:hover {
   background: var(--color-primary);
-  color: #1B2A4A;
+  color: #0047ae;
 }
 
 .footer-social-svg {
@@ -8662,7 +8915,7 @@ body {
 }
 
 .footer-contact-text {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.8125rem;
 }
 
@@ -8699,7 +8952,7 @@ body {
 }
 
 .footer-copyright {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 0.75rem;
   margin: 0;
 }
@@ -8719,7 +8972,7 @@ body {
 }
 
 .footer-legal-link {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   font-size: 0.6875rem;
   transition: color 0.2s;
@@ -8737,7 +8990,7 @@ body {
 }
 
 /* ============================================================
-   Hero — tighter mobile
+   Hero ΓÇö tighter mobile
    ============================================================ */
 @media (max-width: 767px) {
   .hero-section {
@@ -8806,7 +9059,7 @@ body {
 }
 
 /* ============================================================
-   Top bar — hide on small phones
+   Top bar ΓÇö hide on small phones
    ============================================================ */
 @media (max-width: 640px) {
   .top-bar {
@@ -8828,7 +9081,7 @@ body {
 }
 
 /* ============================================================
-   Sub-nav — hide on mobile (content is in mobile hamburger drawer)
+   Sub-nav ΓÇö hide on mobile (content is in mobile hamburger drawer)
    ============================================================ */
 @media (max-width: 767px) {
   .sub-nav {
@@ -8837,7 +9090,7 @@ body {
 }
 
 /* ============================================================
-   Navbar — mobile refinements (Clean White Bar with Hamburger)
+   Navbar ΓÇö mobile refinements (Clean White Bar with Hamburger)
    ============================================================ */
 @media (max-width: 767px) {
   .navbar-inner {
@@ -8987,13 +9240,13 @@ body {
   }
 
   100% {
-    transform: translate3d(-100%, 0, 0);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
 @keyframes autoMarqueeScrollReverse {
   0% {
-    transform: translate3d(-100%, 0, 0);
+    transform: translate3d(-50%, 0, 0);
   }
 
   100% {
@@ -9022,14 +9275,64 @@ body {
 
 .auto-marquee-wrapper.pause-on-hover:hover .auto-marquee-track,
 .auto-marquee-wrapper.pause-on-hover:active .auto-marquee-track,
-.auto-marquee-wrapper.pause-on-hover:focus-within .auto-marquee-track {
-  animation-play-state: paused;
+.auto-marquee-wrapper.pause-on-hover:focus-within .auto-marquee-track,
+.auto-marquee-wrapper.is-paused .auto-marquee-track {
+  animation-play-state: paused !important;
 }
 
 .auto-marquee-content {
   display: flex;
   flex-shrink: 0;
   align-items: stretch;
+}
+
+/* Compact Auto-scroll / Pause toggle button for mobile marquees */
+.marquee-control-bar {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .marquee-control-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 0.25rem;
+    padding-bottom: 0.125rem;
+  }
+
+  .marquee-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.18rem 0.55rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    line-height: 1.2;
+    border-radius: 9999px;
+    background: rgba(0, 71, 174, 0.07);
+    color: #0047ae;
+    border: 1px solid rgba(0, 71, 174, 0.18);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .marquee-toggle-btn:active {
+    transform: scale(0.95);
+  }
+
+  .marquee-toggle-btn.is-paused {
+    background: var(--color-primary);
+    color: #0047ae;
+    border-color: var(--color-primary-dark);
+    box-shadow: 0 1px 4px rgba(255, 214, 10, 0.4);
+  }
+
+  .marquee-toggle-icon {
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
 }
 
 /* Mobile: arrange content in contiguous rows inside the marquee track */
@@ -9223,3 +9526,58 @@ body {
     width: 100%;
   }
 }
+
+/* ------------------------------------------------------------
+   Floating WhatsApp Button
+   Fixed small circle on both desktop and mobile
+   ------------------------------------------------------------ */
+.whatsapp-float-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #25D366;
+  color: #ffffff !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.4), 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 99;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, background-color 0.2s ease;
+}
+
+.whatsapp-float-btn:hover {
+  background: #20ba59;
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.55), 0 4px 10px rgba(0, 0, 0, 0.2);
+  color: #ffffff !important;
+}
+
+.whatsapp-float-btn:active {
+  transform: scale(0.93);
+}
+
+.whatsapp-float-icon {
+  width: 28px;
+  height: 28px;
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .whatsapp-float-btn {
+    bottom: 18px;
+    right: 18px;
+    width: 44px;
+    height: 44px;
+    box-shadow: 0 3px 12px rgba(37, 211, 102, 0.4), 0 2px 5px rgba(0, 0, 0, 0.15);
+  }
+
+  .whatsapp-float-icon {
+    width: 24px;
+    height: 24px;
+  }
+}

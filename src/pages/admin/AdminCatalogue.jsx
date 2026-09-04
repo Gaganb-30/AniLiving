@@ -682,10 +682,15 @@ export const AdminBanners = () => {
 
   const save = async (event) => {
     event.preventDefault();
+    if (!form.image || !form.image.trim()) {
+      toast.error('Please enter a banner image URL.');
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
         ...form,
+        title: form.title?.trim() || `Hero Slide ${banners.length + 1}`,
         sortOrder: Number(form.sortOrder) || 0,
         startDate: form.startDate || undefined,
         endDate: form.endDate || undefined,
@@ -721,7 +726,7 @@ export const AdminBanners = () => {
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
       <AdminPageHeader
         title="Homepage banners"
-        subtitle="Control the hero slides — including a separate mobile image so the banner never swallows a small screen."
+        subtitle="Manage the hero carousel slides — upload image URLs, links, and text."
         actions={<button type="button" className="btn-primary btn-sm" onClick={() => open(null)}><HiOutlinePlus /> Add banner</button>}
       />
 
@@ -771,7 +776,7 @@ export const AdminBanners = () => {
       <Modal
         open={Boolean(editing)}
         onClose={() => setEditing(null)}
-        title={editing === 'new' ? 'New banner' : 'Edit banner'}
+        title={editing === 'new' ? 'New hero banner' : 'Edit hero banner'}
         footer={(
           <>
             <button type="button" className="btn-secondary" onClick={() => setEditing(null)}>Cancel</button>
@@ -783,49 +788,97 @@ export const AdminBanners = () => {
       >
         <form className="admin-form-grid" onSubmit={save}>
           <div className="form-field span-2">
-            <label htmlFor="b-title">Title *</label>
-            <input id="b-title" required value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
+            <label htmlFor="b-image">Banner Image URL *</label>
+            <input
+              id="b-image"
+              required
+              value={form.image}
+              onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
+              placeholder="https://images.unsplash.com/... or any hosted image URL"
+            />
+            {form.image ? (
+              <div className="admin-image-preview is-wide" style={{ height: '140px', marginTop: '0.625rem', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                <img src={form.image} alt="Banner preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            ) : (
+              <span className="form-hint">Paste any hosted image URL (Unsplash, Cloudinary, AWS S3, etc.)</span>
+            )}
           </div>
+
           <div className="form-field span-2">
-            <label htmlFor="b-subtitle">Subtitle</label>
-            <input id="b-subtitle" value={form.subtitle} onChange={(e) => setForm((f) => ({ ...f, subtitle: e.target.value }))} />
+            <label htmlFor="b-title">Title (Optional)</label>
+            <input
+              id="b-title"
+              value={form.title}
+              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+              placeholder="e.g. Everything Your Pet Needs"
+            />
           </div>
+
           <div className="form-field span-2">
-            <label htmlFor="b-image">Desktop image URL *</label>
-            <input id="b-image" required value={form.image} onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))} />
-            {form.image && <div className="admin-image-preview is-wide"><img src={form.image} alt="" /></div>}
+            <label htmlFor="b-subtitle">Subtitle (Optional)</label>
+            <input
+              id="b-subtitle"
+              value={form.subtitle}
+              onChange={(e) => setForm((f) => ({ ...f, subtitle: e.target.value }))}
+              placeholder="e.g. Premium food, toys and accessories"
+            />
           </div>
+
           <div className="form-field span-2">
-            <label htmlFor="b-mobile">Mobile image URL</label>
-            <input id="b-mobile" value={form.mobileImage} onChange={(e) => setForm((f) => ({ ...f, mobileImage: e.target.value }))} />
+            <label htmlFor="b-mobile">Mobile Image URL (Optional)</label>
+            <input
+              id="b-mobile"
+              value={form.mobileImage}
+              onChange={(e) => setForm((f) => ({ ...f, mobileImage: e.target.value }))}
+              placeholder="Optional separate image URL for mobile screens"
+            />
             <span className="form-hint">
-              Optional but recommended — a portrait-friendly crop keeps the hero compact on phones.
+              Optional — a portrait-friendly crop keeps the hero compact on mobile devices.
             </span>
           </div>
+
           <div className="form-field">
-            <label htmlFor="b-link">Link</label>
-            <input id="b-link" value={form.link} onChange={(e) => setForm((f) => ({ ...f, link: e.target.value }))} placeholder="/shop?category=…" />
+            <label htmlFor="b-link">CTA Link</label>
+            <input
+              id="b-link"
+              value={form.link}
+              onChange={(e) => setForm((f) => ({ ...f, link: e.target.value }))}
+              placeholder="/shop or /categories"
+            />
           </div>
+
           <div className="form-field">
-            <label htmlFor="b-button">Button text</label>
-            <input id="b-button" value={form.buttonText} onChange={(e) => setForm((f) => ({ ...f, buttonText: e.target.value }))} />
+            <label htmlFor="b-button">Button Text</label>
+            <input
+              id="b-button"
+              value={form.buttonText}
+              onChange={(e) => setForm((f) => ({ ...f, buttonText: e.target.value }))}
+              placeholder="Shop Now"
+            />
           </div>
+
           <div className="form-field">
-            <label htmlFor="b-start">Starts</label>
-            <input id="b-start" type="date" value={form.startDate} onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))} />
+            <label htmlFor="b-order">Sort Order</label>
+            <input
+              id="b-order"
+              type="number"
+              value={form.sortOrder}
+              onChange={(e) => setForm((f) => ({ ...f, sortOrder: e.target.value }))}
+              placeholder="0"
+            />
           </div>
+
           <div className="form-field">
-            <label htmlFor="b-end">Ends</label>
-            <input id="b-end" type="date" value={form.endDate} onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))} />
+            <label className="form-check" style={{ marginTop: '1.75rem' }}>
+              <input
+                type="checkbox"
+                checked={form.isActive}
+                onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
+              />
+              Live on homepage carousel
+            </label>
           </div>
-          <div className="form-field">
-            <label htmlFor="b-order">Sort order</label>
-            <input id="b-order" type="number" value={form.sortOrder} onChange={(e) => setForm((f) => ({ ...f, sortOrder: e.target.value }))} />
-          </div>
-          <label className="form-check">
-            <input type="checkbox" checked={form.isActive} onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))} />
-            Live on the homepage
-          </label>
         </form>
       </Modal>
 

@@ -101,7 +101,7 @@ const NAMED_COLORS = {
   black: '#111111', white: '#FFFFFF', grey: '#9CA3AF', gray: '#9CA3AF',
   silver: '#C0C0C0', red: '#DC2626', maroon: '#7F1D1D', pink: '#EC4899',
   orange: '#F97316', yellow: '#FACC15', gold: '#D4AF37', green: '#16A34A',
-  olive: '#65A30D', teal: '#0D9488', blue: '#2563EB', navy: '#1B2A4A',
+  olive: '#65A30D', teal: '#0D9488', blue: '#2563EB', navy: '#0047ae',
   purple: '#7C3AED', violet: '#8B5CF6', brown: '#78350F', beige: '#E8D8C3',
   cream: '#FFF5E9', tan: '#D2B48C', khaki: '#BDB76B', ivory: '#FFFFF0',
   charcoal: '#36454F', mustard: '#E1AD01', lavender: '#B57EDC',

@@ -5,6 +5,7 @@ import {
   HiOutlineArrowRight, HiOutlineTruck, HiOutlineShieldCheck,
   HiOutlineHeart, HiOutlineFire,
   HiOutlineBadgeCheck, HiOutlineCash, HiStar,
+  HiChevronLeft, HiChevronRight,
 } from 'react-icons/hi';
 import ProductCard, { ProductCardSkeleton } from '../../components/common/ProductCard';
 import AutoMarquee from '../../components/common/AutoMarquee';
@@ -21,6 +22,21 @@ const fadeInUp = {
 };
 
 const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
+
+const carouselSlideVariants = {
+  enter: (direction) => ({
+    opacity: 0,
+    x: direction > 0 ? 30 : -30,
+  }),
+  center: {
+    opacity: 1,
+    x: 0,
+  },
+  exit: (direction) => ({
+    opacity: 0,
+    x: direction > 0 ? -30 : 30,
+  }),
+};
 
 /** A product rail — reused for flash deals, featured, new, best sellers, trending */
 const ProductRail = ({ title, subtitle, icon, products, loading, viewAllTo, skeletonCount = 4, marqueeSpeed = 30 }) => {
@@ -42,7 +58,7 @@ const ProductRail = ({ title, subtitle, icon, products, loading, viewAllTo, skel
             {Array.from({ length: skeletonCount }).map((_, i) => <ProductCardSkeleton key={i} />)}
           </div>
         ) : (
-          <AutoMarquee speed={marqueeSpeed} className="rail-marquee">
+          <AutoMarquee speed={marqueeSpeed} className="rail-marquee" showControls={true}>
             <div className="product-grid">
               {products.map((product, i) => (
                 <motion.div key={product._id} variants={fadeInUp} custom={i}>
@@ -68,6 +84,8 @@ const HomePage = () => {
 
   const [banners, setBanners] = useState([]);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [carouselPaused, setCarouselPaused] = useState(false);
 
   const [featured, setFeatured] = useState([]);
   const [newArrivals, setNewArrivals] = useState([]);
@@ -116,12 +134,33 @@ const HomePage = () => {
       .catch(() => setBanners([]));
   }, []);
 
-  // Rotate the hero when the admin has published more than one banner
+  const nextSlide = () => {
+    if (banners.length < 2) return;
+    setDirection(1);
+    setActiveSlide((s) => (s + 1) % banners.length);
+  };
+
+  const prevSlide = () => {
+    if (banners.length < 2) return;
+    setDirection(-1);
+    setActiveSlide((s) => (s - 1 + banners.length) % banners.length);
+  };
+
+  const goToSlide = (index) => {
+    if (index === activeSlide || index < 0 || index >= banners.length) return;
+    setDirection(index > activeSlide ? 1 : -1);
+    setActiveSlide(index);
+  };
+
+  // Rotate the hero when the admin has published more than one banner (pauses on hover)
   useEffect(() => {
-    if (banners.length < 2) return undefined;
-    const timer = setInterval(() => setActiveSlide((s) => (s + 1) % banners.length), 6000);
+    if (banners.length < 2 || carouselPaused) return undefined;
+    const timer = setInterval(() => {
+      setDirection(1);
+      setActiveSlide((s) => (s + 1) % banners.length);
+    }, 5000);
     return () => clearInterval(timer);
-  }, [banners.length]);
+  }, [banners.length, carouselPaused]);
 
   const banner = banners[activeSlide];
 
@@ -171,7 +210,7 @@ const HomePage = () => {
               </motion.h1>
 
               <motion.p variants={fadeInUp} custom={2} className="hero-subtitle">
-                {banner?.subtitle || 'Premium food, toys and accessories — free delivery on prepaid orders.'}
+                {banner?.subtitle || 'Premium toys and accessories for your pet— free delivery on all orders.'}
               </motion.p>
 
               <motion.div variants={fadeInUp} custom={3} className="hero-buttons">
@@ -207,30 +246,69 @@ const HomePage = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, ease: 'easeOut', delay: 0.2 }}
               className="hero-image-container"
+              onMouseEnter={() => setCarouselPaused(true)}
+              onMouseLeave={() => setCarouselPaused(false)}
             >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={banner?._id || 'default'}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="hero-image-frame"
-                >
-                  <picture>
-                    {banner?.mobileImage && (
-                      <source media="(max-width: 640px)" srcSet={banner.mobileImage} />
-                    )}
-                    <img
-                      src={banner?.image || '/images/hero-banner.png'}
-                      alt={banner?.title || 'Happy golden retriever and cat with pet supplies'}
-                      loading="eager"
-                      width="640"
-                      height="480"
-                    />
-                  </picture>
-                </motion.div>
-              </AnimatePresence>
+              <div className="hero-carousel-wrapper">
+                <AnimatePresence mode="wait" custom={direction} initial={false}>
+                  <motion.div
+                    key={banner?._id || activeSlide}
+                    custom={direction}
+                    variants={carouselSlideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.4, ease: 'easeInOut' }}
+                    className="hero-image-frame"
+                  >
+                    <picture>
+                      {banner?.mobileImage && (
+                        <source media="(max-width: 640px)" srcSet={banner.mobileImage} />
+                      )}
+                      <img
+                        src={banner?.image || '/images/hero-banner.png'}
+                        alt={banner?.title || 'Happy golden retriever and cat with pet supplies'}
+                        loading="eager"
+                        width="640"
+                        height="480"
+                      />
+                    </picture>
+                  </motion.div>
+                </AnimatePresence>
+
+                {banners.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      className="hero-carousel-arrow hero-carousel-prev"
+                      onClick={prevSlide}
+                      aria-label="Previous banner"
+                    >
+                      <HiChevronLeft />
+                    </button>
+                    <button
+                      type="button"
+                      className="hero-carousel-arrow hero-carousel-next"
+                      onClick={nextSlide}
+                      aria-label="Next banner"
+                    >
+                      <HiChevronRight />
+                    </button>
+
+                    <div className="hero-carousel-dots-overlay">
+                      {banners.map((b, i) => (
+                        <button
+                          key={b._id || i}
+                          type="button"
+                          className={`hero-carousel-dot ${i === activeSlide ? 'active' : ''}`}
+                          onClick={() => goToSlide(i)}
+                          aria-label={`Show banner ${i + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </motion.div>
           </div>
 
@@ -271,7 +349,7 @@ const HomePage = () => {
               ))}
             </motion.div>
           ) : (
-            <AutoMarquee speed={22} className="categories-marquee">
+            <AutoMarquee speed={22} className="categories-marquee" showControls={true}>
               <motion.div className="category-grid" variants={stagger}>
                 {categories.slice(0, 10).map((cat, i) => (
                   <motion.div key={cat._id} variants={fadeInUp} custom={i}>
@@ -418,7 +496,7 @@ const HomePage = () => {
       {/* ============================================================
           NEWSLETTER
           ============================================================ */}
-      <section className="newsletter-section">
+      {/* <section className="newsletter-section">
         <div className="container-custom">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -444,7 +522,7 @@ const HomePage = () => {
             </div>
           </motion.div>
         </div>
-      </section>
+      </section> */}
     </>
   );
 };

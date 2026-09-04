@@ -84,7 +84,7 @@ const SearchResultsPage = () => {
   }
 
   return (
-    <div className="container-custom section-padding">
+    <div className="container-custom shop-page-container">
       <Seo
         title={`Search: ${query}`}
         description={`Search results for "${query}" at AniLiving.`}
@@ -93,11 +93,13 @@ const SearchResultsPage = () => {
       />
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="section-title" style={{ textAlign: 'left' }}>
-          <h1 className="page-heading">Results for &ldquo;{query}&rdquo;</h1>
-          <p className="page-subheading">
-            {loading ? 'Searching…' : `${pagination.total} product${pagination.total === 1 ? '' : 's'} found`}
-          </p>
+        <div className="shop-header-card">
+          <div className="shop-title-row">
+            <h1 className="shop-heading">Results for &ldquo;{query}&rdquo;</h1>
+            <span className="shop-count-badge">
+              {loading ? 'Searching…' : `${pagination.total} product${pagination.total === 1 ? '' : 's'} found`}
+            </span>
+          </div>
         </div>
 
         {/* Related shortcuts */}

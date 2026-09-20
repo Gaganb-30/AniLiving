@@ -37,7 +37,7 @@ export const PrivacyPolicyPage = () => (
     <h3 className="text-text font-bold text-lg mt-6">Data Security</h3>
     <p>We implement industry-standard security measures to protect your data. All payment transactions are processed securely through Razorpay's PCI-DSS compliant gateway.</p>
     <h3 className="text-text font-bold text-lg mt-6">Contact Us</h3>
-    <p>For privacy-related queries, contact us at <strong className="text-primary">support@aniliving.com</strong></p>
+    <p>For privacy-related queries, contact us at <strong className="text-primary">info@aniliving.com</strong></p>
   </PolicyPage>
 );
 
@@ -47,7 +47,7 @@ export const RefundPolicyPage = () => (
     <h3 className="text-text font-bold text-lg mt-6">Eligibility for Refund</h3>
     <ul className="list-disc pl-5 space-y-1"><li>Request must be made within 7 days of delivery</li><li>Product must be unused and in original packaging</li><li>Products damaged during transit are eligible for immediate replacement or refund</li><li>Perishable items (food, treats) are non-refundable unless defective</li></ul>
     <h3 className="text-text font-bold text-lg mt-6">Refund Process</h3>
-    <ul className="list-disc pl-5 space-y-1"><li>Contact us at support@aniliving.com with your order number</li><li>We will review your request within 24-48 hours</li><li>Approved refunds are processed within 5-7 business days</li><li>Refunds are credited to the original payment method</li></ul>
+    <ul className="list-disc pl-5 space-y-1"><li>Contact us at info@aniliving.com with your order number</li><li>We will review your request within 24-48 hours</li><li>Approved refunds are processed within 5-7 business days</li><li>Refunds are credited to the original payment method</li></ul>
     <h3 className="text-text font-bold text-lg mt-6">Non-Refundable Items</h3>
     <p>Gift cards, customized products, and items on final sale are not eligible for refunds.</p>
   </PolicyPage>
@@ -73,7 +73,7 @@ export const CancellationPolicyPage = () => (
     <h3 className="text-text font-bold text-lg mt-6">After Shipping</h3>
     <p>Once an order is shipped, it cannot be cancelled. You may return the product after delivery under our Return Policy.</p>
     <h3 className="text-text font-bold text-lg mt-6">How to Cancel</h3>
-    <p>Log into your account, go to My Orders, and click "Cancel Order". Alternatively, email us at support@aniliving.com.</p>
+    <p>Log into your account, go to My Orders, and click "Cancel Order". Alternatively, email us at info@aniliving.com.</p>
   </PolicyPage>
 );
 

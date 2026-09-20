@@ -759,7 +759,8 @@ body {
   color: #1a1a2e;
   margin-bottom: 0.5rem;
   letter-spacing: -0.02em;
-  min-height: 2.4em; /* Reserves 2 lines so 1-line and 2-line titles have uniform height */
+  min-height: 2.4em;
+  /* Reserves 2 lines so 1-line and 2-line titles have uniform height */
 }
 
 @media (min-width: 768px) {
@@ -798,7 +799,8 @@ body {
   margin-bottom: 0.875rem;
   max-width: 480px;
   line-height: 1.6;
-  min-height: 3.2em; /* Reserves 2 lines so subtitle variations have uniform height */
+  min-height: 3.2em;
+  /* Reserves 2 lines so subtitle variations have uniform height */
 }
 
 .hero-buttons {
@@ -1576,11 +1578,12 @@ body {
   height: 100%;
   object-fit: contain;
   padding: 0.75rem;
-  transition: transform 0.4s ease;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
 }
 
 .product-card:hover .product-card-image img {
-  transform: scale(1.05);
+  transform: scale(1.1);
 }
 
 .product-card-placeholder {
@@ -2763,14 +2766,16 @@ body {
   .hero-heading {
     font-size: 1.75rem;
     line-height: 1.2;
-    min-height: 2.4em; /* Exactly 2 lines on mobile so 1-line and 2-line titles don't change height */
+    min-height: 2.4em;
+    /* Exactly 2 lines on mobile so 1-line and 2-line titles don't change height */
     margin-bottom: 0.625rem;
   }
 
   .hero-subtitle {
     font-size: 0.9375rem;
     line-height: 1.6;
-    min-height: 3.2em; /* Exactly 2 lines on mobile */
+    min-height: 3.2em;
+    /* Exactly 2 lines on mobile */
     margin-bottom: 1rem;
   }
 
@@ -5114,6 +5119,31 @@ body {
   color: var(--color-primary) !important;
 }
 
+.cart-tax-subnote {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-top: 0.2rem;
+  text-transform: none;
+}
+
+.cart-tax-inclusive-tag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.78125rem;
+  font-weight: 600;
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-sm, 6px);
+  margin-bottom: 0.85rem;
+  text-align: center;
+}
+
 .cart-checkout-btn {
   width: 100%;
   justify-content: center;
@@ -5457,6 +5487,48 @@ body {
   font-size: 1rem;
   font-weight: 700;
   margin: 0 0 1rem;
+}
+
+.checkout-buynow-banner {
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.checkout-buynow-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #B45309;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.checkout-buynow-text {
+  font-size: 0.8125rem;
+  color: #92400E;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.checkout-buynow-link {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: underline;
+  margin-top: 0.15rem;
+  display: inline-block;
+}
+
+.checkout-buynow-link:hover {
+  color: var(--color-primary-dark, #b91c1c);
 }
 
 .checkout-items {
@@ -6108,6 +6180,162 @@ body {
 .google-signin-error {
   color: var(--color-error);
   text-align: center;
+}
+
+/* ------------------------------------------------------------
+   Phone + OTP Auth Styles
+   ------------------------------------------------------------ */
+.phone-input-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.phone-prefix {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.875rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  background: var(--color-bg-secondary, #f1f5f9);
+  border-right: 1px solid var(--color-border);
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-top-left-radius: inherit;
+  border-bottom-left-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.phone-input-wrapper input {
+  padding-left: 3.5rem !important;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.auth-phone-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+  margin-top: 0.25rem;
+}
+
+.auth-change-phone-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full, 9999px);
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-change-phone-btn:hover {
+  background: var(--color-bg-secondary, #f8fafc);
+  border-color: var(--color-primary);
+}
+
+.otp-inputs-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.otp-digit-box {
+  width: 3.25rem;
+  height: 3.5rem;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md, 0.5rem);
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  color: var(--color-text);
+}
+
+.otp-digit-box:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.auth-resend-row {
+  text-align: center;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.resend-countdown {
+  color: var(--color-text-muted);
+}
+
+.resend-countdown strong {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.resend-btn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  text-decoration: underline;
+  transition: opacity 0.2s;
+}
+
+.resend-btn:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.resend-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.auth-helper-note {
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.auth-footer-links {
+  margin-top: 1.25rem;
+  text-align: center;
+}
+
+.auth-link-subtle {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.auth-link-subtle:hover {
+  color: var(--color-text);
 }
 
 /* ------------------------------------------------------------
@@ -9528,6 +9756,62 @@ body {
 }
 
 /* ------------------------------------------------------------
+   Floating Amazon Button
+   Stacked above the WhatsApp button
+   ------------------------------------------------------------ */
+.amazon-float-btn {
+  position: fixed;
+  bottom: 94px;
+  /* sits 80px above the 24px-bottomed WhatsApp btn */
+  right: 24px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #FF9900;
+  color: #ffffff !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(255, 153, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 99;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, background-color 0.2s ease;
+}
+
+.amazon-float-btn:hover {
+  background: #e68900;
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(255, 153, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.2);
+  color: #ffffff !important;
+}
+
+.amazon-float-btn:active {
+  transform: scale(0.93);
+}
+
+.amazon-float-icon {
+  width: 30px;
+  height: 30px;
+}
+
+@media (max-width: 640px) {
+  .amazon-float-btn {
+    bottom: 74px;
+    /* 18px (wa bottom) + 44px (wa height) + 12px gap */
+    right: 18px;
+    width: 44px;
+    height: 44px;
+    box-shadow: 0 3px 12px rgba(255, 153, 0, 0.4), 0 2px 5px rgba(0, 0, 0, 0.15);
+  }
+
+  .amazon-float-icon {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* ------------------------------------------------------------
    Floating WhatsApp Button
    Fixed small circle on both desktop and mobile
    ------------------------------------------------------------ */
@@ -9580,4 +9864,4 @@ body {
     width: 24px;
     height: 24px;
   }
-}
+}

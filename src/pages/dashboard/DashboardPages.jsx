@@ -490,12 +490,20 @@ export const OrderDetailsPage = () => {
                 <dd>− {formatCurrency(order.discountAmount)}</dd>
               </div>
             )}
-            <div><dt>Tax</dt><dd>{formatCurrency(order.taxPrice)}</dd></div>
             <div>
               <dt>Delivery</dt>
               <dd>{order.shippingPrice === 0 ? <span className="is-free">FREE</span> : formatCurrency(order.shippingPrice)}</dd>
             </div>
-            <div className="cart-total-row"><dt>Total</dt><dd>{formatCurrency(order.totalPrice)}</dd></div>
+            {order.taxPrice > 0 && (
+              <div><dt>GST (Included)</dt><dd>{formatCurrency(order.taxPrice)}</dd></div>
+            )}
+            <div className="cart-total-row">
+              <dt>
+                Total
+                <span className="cart-tax-subnote">Inclusive of all taxes</span>
+              </dt>
+              <dd>{formatCurrency(order.totalPrice)}</dd>
+            </div>
           </dl>
         </section>
 
@@ -777,17 +785,15 @@ export const ChangePasswordPage = () => {
     }
   };
 
-  // Google-only accounts have no password to change
-  if (user?.authProvider === 'google' && user?.hasPassword === false) {
+  // Phone OTP accounts and Google-only accounts have no password
+  if (user?.authProvider === 'phone' || (user?.authProvider === 'google' && user?.hasPassword === false)) {
     return (
       <motion.div {...fade}>
-        <Seo title="Change password" noindex />
-        <h1 className="dash-heading">Change password</h1>
+        <Seo title="Security & Login" noindex />
+        <h1 className="dash-heading">Security & Login</h1>
         <div className="dash-card">
           <p>
-            You sign in with Google, so there&apos;s no AniLiving password to change. Manage your
-            password from your Google account instead. If you&apos;d like to add a password here,
-            use <Link to="/forgot-password">Forgot password</Link> to set one.
+            You sign in securely using your mobile number and one-time password (OTP). There is no password to manage.
           </p>
         </div>
       </motion.div>

@@ -42,7 +42,7 @@ const AdminLayout = () => {
   if (isAuthenticated && !user) {
     return <div className="route-fallback"><LoadingSpinner size="lg" text="Checking access…" /></div>;
   }
-  if (!isAuthenticated) return <Navigate to="/login?redirect=/admin" replace />;
+  if (!isAuthenticated) return <Navigate to="/admin/login" replace />;
   if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
 
   const sidebar = (

@@ -191,6 +191,7 @@ const AdminSettings = () => {
                 value={settings.taxRate ?? 0}
                 onChange={(e) => set({ taxRate: Number(e.target.value) })}
               />
+              <span className="form-hint">Product prices are tax-inclusive. This rate is used to compute the included GST breakdown for invoices.</span>
             </div>
 
             <div className="form-field">

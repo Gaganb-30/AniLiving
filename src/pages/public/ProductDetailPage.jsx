@@ -95,7 +95,11 @@ const ProductDetailPage = () => {
           || p.variants?.[0];
 
         if (preferred?.attributeCombination) {
-          setSelection({ ...preferred.attributeCombination });
+          // Normalize keys — the DB may have saved them with trailing whitespace
+          const normalized = Object.fromEntries(
+            Object.entries(preferred.attributeCombination).map(([k, v]) => [k.trim(), v])
+          );
+          setSelection(normalized);
         } else {
           setSelection({});
         }
@@ -129,7 +133,9 @@ const ProductDetailPage = () => {
     if (!keys.length) return null;
 
     return product.variants.find((variant) => {
-      const combo = variant.attributeCombination || {};
+      // Normalize combo keys to trim whitespace (guards against data entry typos in the DB)
+      const raw = variant.attributeCombination || {};
+      const combo = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k.trim(), v]));
       return keys.every((key) => String(combo[key]) === String(selection[key]));
     }) || null;
   }, [product, selection]);
@@ -149,7 +155,9 @@ const ProductDetailPage = () => {
       values: attribute.values.map((value) => {
         const others = Object.entries(selection).filter(([k]) => k !== attribute.name);
         const match = product.variants.find((variant) => {
-          const combo = variant.attributeCombination || {};
+          // Normalize combo keys to trim whitespace (guards against trailing-space keys in the DB)
+          const raw = variant.attributeCombination || {};
+          const combo = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k.trim(), v]));
           return String(combo[attribute.name]) === String(value)
             && others.every(([k, v]) => String(combo[k]) === String(v));
         });
@@ -204,7 +212,7 @@ const ProductDetailPage = () => {
   // -------------------------------------------------------------------
   // Actions
   // -------------------------------------------------------------------
-  const handleAddToCart = async ({ buyNow = false } = {}) => {
+  const handleAddToCart = async () => {
     if (needsVariantChoice) {
       toast.error('Please choose all options first.');
       return;
@@ -212,7 +220,7 @@ const ProductDetailPage = () => {
     if (!inStock) return;
 
     setAdding(true);
-    const ok = await addItem(product, {
+    await addItem(product, {
       quantity,
       variantId: activeVariant?._id || null,
       variant: activeVariant?.attributeCombination || null,
@@ -221,7 +229,38 @@ const ProductDetailPage = () => {
       maxStock: pricing.stock,
     });
     setAdding(false);
-    if (ok && buyNow) navigate('/checkout');
+  };
+
+  const handleBuyNow = () => {
+    if (needsVariantChoice) {
+      toast.error('Please choose all options first.');
+      return;
+    }
+    if (!inStock) return;
+
+    const buyNowItem = {
+      productId: product._id,
+      name: product.name,
+      slug: product.slug,
+      thumbnail: gallery[0] || product.thumbnail,
+      price: pricing.price,
+      quantity,
+      variantId: activeVariant?._id || null,
+      variant: activeVariant?.attributeCombination || null,
+      maxStock: pricing.stock,
+    };
+
+    try {
+      sessionStorage.setItem('aniliving_buy_now_item', JSON.stringify(buyNowItem));
+    } catch {
+      // ignore storage issues
+    }
+
+    if (!isAuthenticated) {
+      navigate('/login?redirect=/checkout%3FbuyNow%3D1', { state: { buyNowItem } });
+    } else {
+      navigate('/checkout?buyNow=1', { state: { buyNowItem } });
+    }
   };
 
   const submitReview = async (event) => {
@@ -469,7 +508,7 @@ const ProductDetailPage = () => {
               <button
                 type="button"
                 className="btn-secondary pdp-buy-btn"
-                onClick={() => handleAddToCart({ buyNow: true })}
+                onClick={handleBuyNow}
                 disabled={!inStock || adding || needsVariantChoice}
               >
                 Buy Now

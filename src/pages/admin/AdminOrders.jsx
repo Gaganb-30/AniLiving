@@ -312,9 +312,17 @@ export const AdminOrderDetail = () => {
                   <dd>− {formatCurrency(order.discountAmount)}</dd>
                 </div>
               )}
-              <div><dt>Tax</dt><dd>{formatCurrency(order.taxPrice)}</dd></div>
+              {order.taxPrice > 0 && (
+                <div><dt>GST (Included)</dt><dd>{formatCurrency(order.taxPrice)}</dd></div>
+              )}
               <div><dt>Shipping</dt><dd>{formatCurrency(order.shippingPrice)}</dd></div>
-              <div className="cart-total-row"><dt>Total</dt><dd>{formatCurrency(order.totalPrice)}</dd></div>
+              <div className="cart-total-row">
+                <dt>
+                  Total
+                  <span className="cart-tax-subnote">Inclusive of all taxes</span>
+                </dt>
+                <dd>{formatCurrency(order.totalPrice)}</dd>
+              </div>
             </dl>
           </section>
 

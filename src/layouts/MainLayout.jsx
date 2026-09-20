@@ -2,6 +2,7 @@ import { Outlet, ScrollRestoration } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import WhatsAppButton from '../components/common/WhatsAppButton';
+import AmazonButton from '../components/common/AmazonButton';
 import Seo, { organizationSchema, websiteSchema } from '../components/seo/Seo';
 import { useSettings } from '../hooks/useSettings';
 import { useAuthBootstrap } from '../hooks/useAuth';
@@ -30,6 +31,7 @@ const MainLayout = () => {
         <Outlet />
       </main>
 
+      <AmazonButton />
       <WhatsAppButton />
       <Footer />
       <ScrollRestoration />

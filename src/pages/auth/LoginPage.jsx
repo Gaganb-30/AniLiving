@@ -1,11 +1,11 @@
-import { useState, useCallback } from 'react';
-import { Link, useNavigate, useLocation, useSearchParams, Navigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation, useSearchParams, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
-import { useForm } from 'react-hook-form';
-import { HiOutlineMail, HiOutlineLockClosed, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { HiPencilAlt } from 'react-icons/hi';
 import Seo from '../../components/seo/Seo';
-import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
+// Google sign-in is commented out per requirement; uncomment when ready to re-enable
+// import GoogleSignInButton from '../../components/auth/GoogleSignInButton';
 import { useAuth } from '../../hooks/useAuth';
 
 const LoginPage = () => {
@@ -13,43 +13,180 @@ const LoginPage = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { isAuthenticated } = useSelector((state) => state.auth);
-  const { login, loginWithGoogle } = useAuth();
+  const { sendOtp, verifyOtp } = useAuth();
 
+  // Step in OTP flow: 'phone' or 'verify'
+  const [step, setStep] = useState('phone');
+  const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
+  const [otpError, setOtpError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  // Resend OTP countdown timer
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const otpInputRefs = useRef([]);
 
-  // Where to land after signing in: ?redirect=, router state, or the dashboard
+  // Destination after login
   const redirectTo = searchParams.get('redirect') || location.state?.from || '/dashboard';
 
-  const onSubmit = async (values) => {
+  // Decrement countdown timer every second
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  // Focus the first OTP box when entering the 'verify' step
+  useEffect(() => {
+    if (step === 'verify' && otpInputRefs.current[0]) {
+      otpInputRefs.current[0].focus();
+    }
+  }, [step]);
+
+  // If already logged in, redirect immediately
+  if (isAuthenticated) {
+    return <Navigate to={redirectTo} state={location.state} replace />;
+  }
+
+  // Format seconds into MM:SS
+  const formatTimer = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  // ---------------------------------------------------------------------------
+  // Step 1: Request OTP
+  // ---------------------------------------------------------------------------
+  const handleSendOtp = async (e) => {
+    e?.preventDefault();
+    setPhoneError('');
+
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      setPhoneError('Please enter a valid 10-digit Indian mobile number');
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const user = await login(values);
-      navigate(user.role === 'admin' && redirectTo === '/dashboard' ? '/admin' : redirectTo, { replace: true });
-    } catch {
+      const data = await sendOtp(cleanPhone);
+      const timeoutSecs = Math.max(30, (data?.otpTimeoutMinutes || 1) * 60);
+      setResendCooldown(timeoutSecs);
+      setStep('verify');
+      setOtpDigits(['', '', '', '', '', '']);
+      setOtpError('');
+    } catch (err) {
+      setPhoneError(err.response?.data?.message || err.message || 'Failed to send OTP.');
+    } finally {
       setSubmitting(false);
     }
   };
 
-  const handleGoogle = useCallback(async (credential) => {
+  // ---------------------------------------------------------------------------
+  // Resend OTP
+  // ---------------------------------------------------------------------------
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0 || submitting) return;
     setSubmitting(true);
+    setOtpError('');
     try {
-      const user = await loginWithGoogle(credential);
-      navigate(user.role === 'admin' && redirectTo === '/dashboard' ? '/admin' : redirectTo, { replace: true });
-    } catch {
+      const cleanPhone = phone.replace(/\D/g, '');
+      const data = await sendOtp(cleanPhone);
+      const timeoutSecs = Math.max(30, (data?.otpTimeoutMinutes || 1) * 60);
+      setResendCooldown(timeoutSecs);
+      setOtpDigits(['', '', '', '', '', '']);
+      if (otpInputRefs.current[0]) {
+        otpInputRefs.current[0].focus();
+      }
+    } catch (err) {
+      setOtpError(err.response?.data?.message || err.message || 'Failed to resend OTP.');
+    } finally {
       setSubmitting(false);
     }
-  }, [loginWithGoogle, navigate, redirectTo]);
+  };
 
-  if (isAuthenticated) return <Navigate to={redirectTo} replace />;
+  // ---------------------------------------------------------------------------
+  // Step 2: Handle OTP input & auto-focus
+  // ---------------------------------------------------------------------------
+  const handleOtpChange = (index, value) => {
+    const cleanVal = value.replace(/\D/g, '');
+    if (!cleanVal && value !== '') return;
+
+    const newDigits = [...otpDigits];
+
+    // Handle paste of multiple digits
+    if (cleanVal.length > 1) {
+      const pasted = cleanVal.slice(0, 6).split('');
+      pasted.forEach((char, i) => {
+        if (i < 6) newDigits[i] = char;
+      });
+      setOtpDigits(newDigits);
+      const nextIdx = Math.min(pasted.length, 5);
+      otpInputRefs.current[nextIdx]?.focus();
+      if (pasted.length === 6) {
+        submitVerification(newDigits.join(''));
+      }
+      return;
+    }
+
+    newDigits[index] = cleanVal;
+    setOtpDigits(newDigits);
+
+    // Auto-advance to next input box
+    if (cleanVal && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+
+    // Auto-submit when all 6 digits entered
+    if (cleanVal && index === 5 && newDigits.every((d) => d !== '')) {
+      submitVerification(newDigits.join(''));
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace') {
+      if (!otpDigits[index] && index > 0) {
+        otpInputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      otpInputRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // Verify OTP & complete login
+  // ---------------------------------------------------------------------------
+  const submitVerification = async (otpCode) => {
+    const code = otpCode || otpDigits.join('');
+    if (code.length !== 6) {
+      setOtpError('Please enter all 6 digits of the OTP');
+      return;
+    }
+
+    setSubmitting(true);
+    setOtpError('');
+    try {
+      const cleanPhone = phone.replace(/\D/g, '');
+      const user = await verifyOtp(cleanPhone, code);
+      const target = user?.role === 'admin' && redirectTo === '/dashboard' ? '/admin' : redirectTo;
+      navigate(target, { replace: true, state: location.state });
+    } catch (err) {
+      setOtpError(err.response?.data?.message || err.message || 'Incorrect OTP. Please try again.');
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="container-custom section-padding">
       <Seo
-        title="Sign in"
-        description="Sign in to your AniLiving account to track orders, manage your wishlist and check out faster."
+        title="Sign In"
+        description="Sign in with your mobile number to view orders, manage addresses, or complete your checkout."
         canonical="/login"
         noindex
       />
@@ -60,69 +197,164 @@ const LoginPage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
       >
-        <div className="auth-head">
-          <span className="auth-emoji">🐾</span>
-          <h1>Welcome back</h1>
-          <p>Sign in to continue shopping for your best friend.</p>
-        </div>
+        <AnimatePresence mode="wait">
+          {step === 'phone' ? (
+            <motion.div
+              key="step-phone"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="auth-head">
+                <span className="auth-emoji">🐾</span>
+                <h1>Sign In or Sign Up</h1>
+                <p>
+                  {redirectTo.includes('checkout')
+                    ? 'Quick verification to proceed to your order'
+                    : 'Enter your phone number to receive a one-time password.'}
+                </p>
+              </div>
 
-        <form className="auth-form" onSubmit={handleSubmit(onSubmit)}>
-          <div className="form-field">
-            <label htmlFor="email">Email address</label>
-            <div className="input-with-icon">
-              <HiOutlineMail />
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                {...register('email', {
-                  required: 'Email is required',
-                  pattern: { value: /^\S+@\S+\.\S+$/, message: 'Enter a valid email address' },
-                })}
-              />
-            </div>
-            {errors.email && <span className="form-error">{errors.email.message}</span>}
-          </div>
+              <form className="auth-form" onSubmit={handleSendOtp}>
+                <div className="form-field">
+                  <label htmlFor="phone">Mobile Number</label>
+                  <div className="input-with-icon phone-input-wrapper">
+                    <span className="phone-prefix">+91</span>
+                    <input
+                      id="phone"
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel-national"
+                      autoFocus
+                      placeholder="98765 43210"
+                      maxLength={10}
+                      value={phone}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        setPhone(val);
+                        if (phoneError) setPhoneError('');
+                      }}
+                    />
+                  </div>
+                  {phoneError && <span className="form-error">{phoneError}</span>}
+                </div>
 
-          <div className="form-field">
-            <div className="form-label-row">
-              <label htmlFor="password">Password</label>
-              <Link to="/forgot-password" className="auth-link-sm">Forgot password?</Link>
-            </div>
-            <div className="input-with-icon">
-              <HiOutlineLockClosed />
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
-                placeholder="Your password"
-                {...register('password', { required: 'Password is required' })}
-              />
-              <button
-                type="button"
-                className="input-toggle"
-                onClick={() => setShowPassword((s) => !s)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                <button
+                  type="submit"
+                  className="btn-primary auth-submit"
+                  disabled={submitting || phone.replace(/\D/g, '').length !== 10}
+                >
+                  {submitting ? 'Sending OTP…' : 'Get OTP'}
+                </button>
+              </form>
+
+              {/* Google sign-in commented out per user request
+              <div className="auth-divider"><span>or</span></div>
+              <GoogleSignInButton onCredential={handleGoogle} text="signin_with" />
+              */}
+
+              <div className="auth-helper-note">
+                🔒 We never share your number.
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="step-verify"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="auth-head">
+                <span className="auth-emoji">📱</span>
+                <h1>Verify Code</h1>
+                <div className="auth-phone-display">
+                  <span>Sent to <strong>+91 {phone}</strong></span>
+                  <button
+                    type="button"
+                    className="auth-change-phone-btn"
+                    onClick={() => {
+                      setStep('phone');
+                      setOtpError('');
+                    }}
+                    title="Change phone number"
+                  >
+                    <HiPencilAlt /> Edit
+                  </button>
+                </div>
+              </div>
+
+              <form
+                className="auth-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  submitVerification();
+                }}
               >
-                {showPassword ? <HiOutlineEyeOff /> : <HiOutlineEye />}
-              </button>
-            </div>
-            {errors.password && <span className="form-error">{errors.password.message}</span>}
-          </div>
+                <div className="form-field">
+                  <label>Enter 6-digit verification code</label>
+                  <div className="otp-inputs-row">
+                    {otpDigits.map((digit, idx) => (
+                      <input
+                        key={idx}
+                        ref={(el) => (otpInputRefs.current[idx] = el)}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={1}
+                        className="otp-digit-box"
+                        value={digit}
+                        onChange={(e) => handleOtpChange(idx, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                        autoComplete={idx === 0 ? 'one-time-code' : 'off'}
+                      />
+                    ))}
+                  </div>
+                  {otpError && <span className="form-error text-center">{otpError}</span>}
+                </div>
 
-          <button type="submit" className="btn-primary auth-submit" disabled={submitting}>
-            {submitting ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+                <button
+                  type="submit"
+                  className="btn-primary auth-submit"
+                  disabled={submitting || otpDigits.some((d) => !d)}
+                >
+                  {submitting ? 'Verifying…' : 'Verify & Continue'}
+                </button>
+              </form>
 
-        <div className="auth-divider"><span>or</span></div>
+              <div className="auth-resend-row">
+                {resendCooldown > 0 ? (
+                  <span className="resend-countdown">
+                    Resend OTP in <strong>{formatTimer(resendCooldown)}</strong>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="resend-btn"
+                    onClick={handleResendOtp}
+                    disabled={submitting}
+                  >
+                    Resend OTP
+                  </button>
+                )}
+              </div>
 
-        <GoogleSignInButton onCredential={handleGoogle} text="signin_with" />
-
-        <p className="auth-footer">
-          New to AniLiving? <Link to={`/register${searchParams.get('redirect') ? `?redirect=${searchParams.get('redirect')}` : ''}`}>Create an account</Link>
-        </p>
+              <div className="auth-footer-links">
+                <button
+                  type="button"
+                  className="auth-link-subtle"
+                  onClick={() => {
+                    setStep('phone');
+                    setOtpError('');
+                  }}
+                >
+                  ← Back to phone entry
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );

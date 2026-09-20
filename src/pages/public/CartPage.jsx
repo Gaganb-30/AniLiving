@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 import {
   HiOutlineTrash, HiMinus, HiPlus, HiOutlineBookmark,
-  HiOutlineShoppingBag, HiOutlineTag, HiX,
+  HiOutlineTag, HiX,
 } from 'react-icons/hi';
 import EmptyState from '../../components/common/EmptyState';
 import Seo from '../../components/seo/Seo';
@@ -87,11 +87,8 @@ const CartPage = () => {
   useEffect(() => { if (isAuthenticated) refresh(); }, [isAuthenticated, refresh]);
 
   const discount = coupon?.discount || 0;
-  const shipping = subtotal >= (settings.freeShippingThreshold || 0) ? 0 : (settings.shippingCharge || 0);
-  const taxable = Math.max(0, subtotal - discount);
-  const tax = Math.round(taxable * ((settings.taxRate || 0) / 100) * 100) / 100;
-  const total = taxable + tax + shipping;
-  const awayFromFreeShipping = (settings.freeShippingThreshold || 0) - subtotal;
+  const shipping = 0; // Delivery is free on all orders
+  const total = Math.max(0, subtotal - discount) + shipping;
 
   const handleApplyCoupon = async (event) => {
     event.preventDefault();
@@ -130,18 +127,6 @@ const CartPage = () => {
       <div className="cart-layout">
         {/* ── Items ─────────────────────────────────────────────────── */}
         <div className="cart-items">
-          {awayFromFreeShipping > 0 && (
-            <div className="cart-shipping-nudge">
-              <HiOutlineShoppingBag />
-              Add <strong>{formatCurrency(awayFromFreeShipping)}</strong> more to unlock free delivery
-              <span className="cart-shipping-track">
-                <span
-                  className="cart-shipping-fill"
-                  style={{ width: `${Math.min(100, (subtotal / (settings.freeShippingThreshold || 1)) * 100)}%` }}
-                />
-              </span>
-            </div>
-          )}
 
           <ul className="cart-list">
             <AnimatePresence initial={false}>
@@ -216,13 +201,22 @@ const CartPage = () => {
               {discount > 0 && (
                 <div className="is-discount"><dt>Coupon discount</dt><dd>− {formatCurrency(discount)}</dd></div>
               )}
-              <div><dt>Tax (GST {settings.taxRate}%)</dt><dd>{formatCurrency(tax)}</dd></div>
               <div>
                 <dt>Delivery</dt>
                 <dd>{shipping === 0 ? <span className="is-free">FREE</span> : formatCurrency(shipping)}</dd>
               </div>
-              <div className="cart-total-row"><dt>Total</dt><dd>{formatCurrency(total)}</dd></div>
+              <div className="cart-total-row">
+                <dt>
+                  Total
+                  <span className="cart-tax-subnote">Inclusive of all taxes</span>
+                </dt>
+                <dd>{formatCurrency(total)}</dd>
+              </div>
             </dl>
+
+            <div className="cart-tax-inclusive-tag">
+              Inclusive of all taxes · GST included
+            </div>
 
             <button
               type="button"

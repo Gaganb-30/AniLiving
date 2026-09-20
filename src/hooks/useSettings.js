@@ -13,7 +13,7 @@ const DEFAULTS = {
   currencySymbol: '₹',
   codEnabled: true,
   shippingCharge: 0,
-  freeShippingThreshold: 499,
+  freeShippingThreshold: 0,
   taxRate: 18,
   socialLinks: {},
   seo: {},

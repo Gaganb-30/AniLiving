@@ -29,6 +29,47 @@ export const useAuth = () => {
     await loadWishlist();
   }, [dispatch, mergeGuestCart, loadWishlist]);
 
+  // Step 1 — Request OTP
+  const sendOtp = useCallback(async (phone) => {
+    try {
+      const { data } = await authService.sendOtp(phone);
+      toast.success(data.message || 'OTP sent successfully!');
+      return data.data;
+    } catch (err) {
+      toast.error(errorMessage(err, 'Failed to send OTP.'));
+      throw err;
+    }
+  }, []);
+
+  // Step 2 — Verify OTP & log in
+  const verifyOtp = useCallback(async (phone, otp) => {
+    try {
+      const { data } = await authService.verifyOtp(phone, otp);
+      await afterLogin(data.data);
+      const userObj = data.data.user;
+      const isGuestName = !userObj.firstName || userObj.firstName.startsWith('Guest');
+      toast.success(isGuestName ? 'Welcome to AniLiving!' : `Welcome back, ${userObj.firstName}!`);
+      return userObj;
+    } catch (err) {
+      toast.error(errorMessage(err, 'Invalid or expired OTP.'));
+      throw err;
+    }
+  }, [afterLogin]);
+
+  // Admin login via email & password
+  const adminLogin = useCallback(async (credentials) => {
+    try {
+      const { data } = await authService.adminLogin(credentials);
+      await afterLogin(data.data);
+      toast.success(`Welcome back, ${data.data.user.firstName}!`);
+      return data.data.user;
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not sign you in.'));
+      throw err;
+    }
+  }, [afterLogin]);
+
+  /* Legacy auth methods (commented out):
   const login = useCallback(async (credentials) => {
     try {
       const { data } = await authService.login(credentials);
@@ -53,7 +94,6 @@ export const useAuth = () => {
     }
   }, [afterLogin]);
 
-  /** Exchange a Google ID token (credential) for an AniLiving session */
   const loginWithGoogle = useCallback(async (credential) => {
     try {
       const { data } = await authService.googleLogin(credential);
@@ -65,6 +105,7 @@ export const useAuth = () => {
       throw err;
     }
   }, [afterLogin]);
+  */
 
   const logout = useCallback(async () => {
     try {
@@ -78,7 +119,16 @@ export const useAuth = () => {
     toast.success('Signed out');
   }, [dispatch]);
 
-  return { user, isAuthenticated, accessToken, login, register, loginWithGoogle, logout, updateUser: (u) => dispatch(updateUser(u)) };
+  return {
+    user,
+    isAuthenticated,
+    accessToken,
+    sendOtp,
+    verifyOtp,
+    adminLogin,
+    logout,
+    updateUser: (u) => dispatch(updateUser(u)),
+  };
 };
 
 /**

@@ -127,26 +127,24 @@ const Footer = () => {
             <li className="footer-contact-item">
               <HiOutlineMail className="footer-contact-icon" />
               <a
-                href={`mailto:${settings.contactEmail || 'support@aniliving.com'}`}
+                href={`mailto:${settings.contactEmail || 'info@aniliving.com'}`}
                 className="footer-link"
               >
-                {settings.contactEmail || 'support@aniliving.com'}
+                {settings.contactEmail || 'info@aniliving.com'}
               </a>
             </li>
-            {settings.contactPhone && (
-              <li className="footer-contact-item">
-                <HiOutlinePhone className="footer-contact-icon" />
-                <a
-                  href={`tel:${settings.contactPhone.replace(/\s+/g, '')}`}
-                  className="footer-link"
-                >
-                  {settings.contactPhone}
-                </a>
-              </li>
-            )}
+            <li className="footer-contact-item">
+              <HiOutlinePhone className="footer-contact-icon" />
+              <a
+                href={`tel:${(settings.contactPhone || '+918929772812').replace(/\s+/g, '')}`}
+                className="footer-link"
+              >
+                {settings.contactPhone || '+91 8929772812'}
+              </a>
+            </li>
             <li className="footer-contact-item">
               <HiOutlineLocationMarker className="footer-contact-icon" />
-              <span className="footer-contact-text">{settings.address || 'India'}</span>
+              <span className="footer-contact-text">{settings.address || 'C-279, Street No. 7, Mukund Vihar, Karawal Nagar, Delhi : 110094'}</span>
             </li>
           </ul>
         </div>

@@ -60,6 +60,7 @@ const ChangePasswordPage = lazy(() => DashboardModule().then((m) => ({ default: 
 
 // Admin
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
+const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
 const AdminProductForm = lazy(() => import('./pages/admin/AdminProductForm'));
@@ -137,6 +138,12 @@ const router = createBrowserRouter([
 
       { path: '*', element: <Page><NotFoundPage /></Page> },
     ],
+  },
+
+  // Dedicated admin login portal
+  {
+    path: '/admin/login',
+    element: <Page><AdminLoginPage /></Page>,
   },
 
   // Admin panel — its own shell, outside the storefront chrome

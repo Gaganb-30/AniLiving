@@ -26,9 +26,9 @@ const ContactPage = () => (
           <div className="bg-white rounded-2xl shadow-soft p-8">
             <h3 className="font-bold text-text text-lg mb-5">Get in Touch</h3>
             <div className="space-y-4">
-              <div className="flex items-start gap-3"><HiOutlineMail className="w-5 h-5 text-primary mt-0.5 shrink-0" /><div><p className="font-medium text-text text-sm">Email</p><p className="text-sm text-text-muted">support@aniliving.com</p></div></div>
-              <div className="flex items-start gap-3"><HiOutlinePhone className="w-5 h-5 text-primary mt-0.5 shrink-0" /><div><p className="font-medium text-text text-sm">Phone</p><p className="text-sm text-text-muted">+91 XXXXXXXXXX</p></div></div>
-              <div className="flex items-start gap-3"><HiOutlineLocationMarker className="w-5 h-5 text-primary mt-0.5 shrink-0" /><div><p className="font-medium text-text text-sm">Address</p><p className="text-sm text-text-muted">India</p></div></div>
+              <div className="flex items-start gap-3"><HiOutlineMail className="w-5 h-5 text-primary mt-0.5 shrink-0" /><div><p className="font-medium text-text text-sm">Email</p><a href="mailto:info@aniliving.com" className="text-sm text-text-muted hover:text-primary">info@aniliving.com</a></div></div>
+              <div className="flex items-start gap-3"><HiOutlinePhone className="w-5 h-5 text-primary mt-0.5 shrink-0" /><div><p className="font-medium text-text text-sm">Phone</p><a href="tel:+918929772812" className="text-sm text-text-muted hover:text-primary">+91 8929772812</a></div></div>
+              <div className="flex items-start gap-3"><HiOutlineLocationMarker className="w-5 h-5 text-primary mt-0.5 shrink-0" /><div><p className="font-medium text-text text-sm">Address</p><p className="text-sm text-text-muted">C-279, Street No. 7, Mukund Vihar, Karawal Nagar, Delhi : 110094</p></div></div>
             </div>
           </div>
           <div className="bg-white rounded-2xl shadow-soft p-8">

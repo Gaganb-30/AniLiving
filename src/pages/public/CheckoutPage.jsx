@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
@@ -12,6 +12,7 @@ import Seo from '../../components/seo/Seo';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { orderService, userService } from '../../services/apiServices';
 import { useCart } from '../../hooks/useCart';
+import { useAuth } from '../../hooks/useAuth';
 import { useSettings } from '../../hooks/useSettings';
 import { openRazorpayCheckout } from '../../utils/razorpay';
 import { formatCurrency, variantLabel, errorMessage } from '../../utils/format';
@@ -35,9 +36,47 @@ const INDIAN_STATES = [
  */
 const CheckoutPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  const isBuyNow = searchParams.get('buyNow') === '1' || Boolean(location.state?.buyNowItem);
+
+  const buyNowItem = useMemo(() => {
+    if (!isBuyNow) return null;
+    if (location.state?.buyNowItem) return location.state.buyNowItem;
+    try {
+      const stored = sessionStorage.getItem('aniliving_buy_now_item');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  }, [isBuyNow, location.state]);
+
   const { user, isAuthenticated } = useSelector((state) => state.auth);
   const { settings, integrations } = useSettings();
   const { activeItems, subtotal, coupon, isEmpty, refresh, emptyCart } = useCart();
+
+  const checkoutItems = useMemo(() => {
+    if (isBuyNow) {
+      return buyNowItem ? [{
+        id: `buynow-${buyNowItem.productId}`,
+        productId: buyNowItem.productId,
+        name: buyNowItem.name,
+        thumbnail: buyNowItem.thumbnail,
+        price: buyNowItem.price,
+        quantity: buyNowItem.quantity,
+        variant: buyNowItem.variant,
+      }] : [];
+    }
+    return activeItems;
+  }, [isBuyNow, buyNowItem, activeItems]);
+
+  const effectiveSubtotal = useMemo(() => {
+    if (isBuyNow) {
+      return buyNowItem ? buyNowItem.price * buyNowItem.quantity : 0;
+    }
+    return subtotal;
+  }, [isBuyNow, buyNowItem, subtotal]);
 
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
@@ -46,11 +85,15 @@ const CheckoutPage = () => {
   const [placing, setPlacing] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const { updateUser: syncUser } = useAuth();
+  const isGuest = !user?.firstName || user.firstName.startsWith('Guest');
+  const initialName = isGuest ? '' : `${user.firstName} ${user.lastName || ''}`.trim();
+
   const {
     register, handleSubmit, reset, formState: { errors },
   } = useForm({
     defaultValues: {
-      fullName: user ? `${user.firstName} ${user.lastName}` : '',
+      fullName: initialName,
       phone: user?.phone || '',
       addressLine1: '', addressLine2: '', city: '', state: '', pincode: '',
       type: 'home', isDefault: true,
@@ -84,20 +127,23 @@ const CheckoutPage = () => {
   // Totals — mirrored server-side, shown here so there are no surprises
   // -------------------------------------------------------------------
   const totals = useMemo(() => {
-    const discount = coupon?.discount || 0;
-    const taxable = Math.max(0, subtotal - discount);
-    const tax = Math.round(taxable * ((settings.taxRate || 0) / 100) * 100) / 100;
-    const shipping = subtotal >= (settings.freeShippingThreshold || 0) ? 0 : (settings.shippingCharge || 0);
-    return { discount, tax, shipping, total: taxable + tax + shipping };
-  }, [subtotal, coupon, settings]);
+    const discount = isBuyNow ? 0 : (coupon?.discount || 0);
+    const shipping = 0; // Free delivery on all orders
+    const total = Math.max(0, effectiveSubtotal - discount) + shipping;
+    return { discount, shipping, total };
+  }, [isBuyNow, effectiveSubtotal, coupon]);
 
   const selectedAddress = addresses.find((a) => a._id === selectedAddressId);
 
-  if (!isAuthenticated) return <Navigate to="/login?redirect=/checkout" replace />;
+  if (!isAuthenticated) {
+    const returnUrl = isBuyNow ? '/checkout?buyNow=1' : '/checkout';
+    return <Navigate to={`/login?redirect=${encodeURIComponent(returnUrl)}`} state={location.state} replace />;
+  }
   if (loading) {
     return <div className="container-custom section-padding"><LoadingSpinner size="lg" text="Preparing checkout…" /></div>;
   }
-  if (isEmpty) return <Navigate to="/cart" replace />;
+  if (isBuyNow && !buyNowItem) return <Navigate to="/shop" replace />;
+  if (!isBuyNow && isEmpty) return <Navigate to="/cart" replace />;
 
   // -------------------------------------------------------------------
   // Saving a new address
@@ -111,6 +157,21 @@ const CheckoutPage = () => {
       setShowAddressForm(false);
       reset();
       toast.success('Address saved');
+
+      // If user had an auto-generated Guest name, update their profile with the entered full name
+      if (isGuest && values.fullName?.trim()) {
+        const parts = values.fullName.trim().split(/\s+/);
+        const firstName = parts[0];
+        const lastName = parts.slice(1).join(' ') || '';
+        try {
+          const res = await userService.updateProfile({ firstName, lastName });
+          if (res.data?.data?.user) {
+            syncUser(res.data.data.user);
+          }
+        } catch {
+          // non-blocking
+        }
+      }
     } catch (err) {
       toast.error(errorMessage(err, 'Could not save that address.'));
     }
@@ -144,15 +205,29 @@ const CheckoutPage = () => {
           country: selectedAddress.country || 'India',
         },
         paymentMethod,
-        couponCode: coupon?.code,
+        couponCode: isBuyNow ? undefined : coupon?.code,
+        directItem: isBuyNow ? {
+          productId: buyNowItem.productId,
+          variantId: buyNowItem.variantId || null,
+          variant: buyNowItem.variant || null,
+          quantity: buyNowItem.quantity,
+        } : undefined,
       });
 
       const { order, razorpayOrder } = data.data;
 
+      const finishOrder = async () => {
+        if (isBuyNow) {
+          try { sessionStorage.removeItem('aniliving_buy_now_item'); } catch {}
+        } else {
+          await emptyCart();
+        }
+        navigate(`/order-success?order=${order._id}`, { replace: true });
+      };
+
       // Cash on delivery — nothing more to do
       if (paymentMethod === 'cod') {
-        await emptyCart();
-        navigate(`/order-success?order=${order._id}`, { replace: true });
+        await finishOrder();
         return;
       }
 
@@ -169,8 +244,7 @@ const CheckoutPage = () => {
               razorpayOrderId: response.razorpay_order_id,
               razorpaySignature: response.razorpay_signature,
             });
-            await emptyCart();
-            navigate(`/order-success?order=${order._id}`, { replace: true });
+            await finishOrder();
           } catch (err) {
             toast.error(errorMessage(err, 'We could not verify your payment.'));
             navigate(`/order-failed?order=${order._id}`, { replace: true });
@@ -394,9 +468,23 @@ const CheckoutPage = () => {
           <div className="checkout-summary-inner">
             <h2>Order summary</h2>
 
+            {isBuyNow && (
+              <div className="checkout-buynow-banner">
+                <div>
+                  <span className="checkout-buynow-tag">⚡ Direct Purchase</span>
+                  <p className="checkout-buynow-text">Checking out this item directly · Your cart items remain saved</p>
+                </div>
+                {activeItems.length > 0 && (
+                  <Link to="/checkout" className="checkout-buynow-link">
+                    Buy full cart ({activeItems.length} items) instead
+                  </Link>
+                )}
+              </div>
+            )}
+
             <ul className="checkout-items">
-              {activeItems.map((item) => (
-                <li key={item.id}>
+              {checkoutItems.map((item) => (
+                <li key={item.id || item.productId}>
                   <span className="checkout-item-image">
                     {item.thumbnail ? <img src={item.thumbnail} alt="" loading="lazy" /> : '🐾'}
                     <em>{item.quantity}</em>
@@ -411,20 +499,29 @@ const CheckoutPage = () => {
             </ul>
 
             <dl className="cart-totals">
-              <div><dt>Subtotal</dt><dd>{formatCurrency(subtotal)}</dd></div>
-              {totals.discount > 0 && (
+              <div><dt>Subtotal</dt><dd>{formatCurrency(effectiveSubtotal)}</dd></div>
+              {!isBuyNow && totals.discount > 0 && (
                 <div className="is-discount">
                   <dt>Discount{coupon?.code ? ` (${coupon.code})` : ''}</dt>
                   <dd>− {formatCurrency(totals.discount)}</dd>
                 </div>
               )}
-              <div><dt>Tax (GST {settings.taxRate}%)</dt><dd>{formatCurrency(totals.tax)}</dd></div>
               <div>
                 <dt>Delivery</dt>
                 <dd>{totals.shipping === 0 ? <span className="is-free">FREE</span> : formatCurrency(totals.shipping)}</dd>
               </div>
-              <div className="cart-total-row"><dt>Payable</dt><dd>{formatCurrency(totals.total)}</dd></div>
+              <div className="cart-total-row">
+                <dt>
+                  Payable
+                  <span className="cart-tax-subnote">Inclusive of all taxes</span>
+                </dt>
+                <dd>{formatCurrency(totals.total)}</dd>
+              </div>
             </dl>
+
+            <div className="cart-tax-inclusive-tag">
+              Inclusive of all taxes · GST included
+            </div>
 
             <button
               type="button"

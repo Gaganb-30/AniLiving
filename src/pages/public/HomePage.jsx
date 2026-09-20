@@ -195,7 +195,7 @@ const HomePage = () => {
                   ))}
                 </div>
                 <span className="hero-trust-text">
-                  Trusted by <strong style={{ color: '#222' }}>10,000+</strong> Pet Parents
+                  Made for Everyday Excellence
                   <HiOutlineBadgeCheck style={{ display: 'inline', color: '#3B82F6', marginLeft: '4px', verticalAlign: 'middle' }} />
                 </span>
               </motion.div>

@@ -390,6 +390,7 @@ const AdminProductForm = () => {
                 value={form.price}
                 onChange={(e) => set({ price: e.target.value })}
               />
+              <span className="form-hint">Final price charged to buyer (inclusive of GST and all taxes).</span>
             </div>
 
             <div className="form-field">
@@ -421,6 +422,7 @@ const AdminProductForm = () => {
                 value={form.tax}
                 onChange={(e) => set({ tax: e.target.value })}
               />
+              <span className="form-hint">Included in the selling price (used for GST breakdown &amp; invoice).</span>
             </div>
 
             <div className="form-field">

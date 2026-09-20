@@ -4,14 +4,24 @@ import api from './api';
  *  AUTH
  *  ============================================================ */
 export const authService = {
-  login: (data) => api.post('/auth/login', data),
-  register: (data) => api.post('/auth/register', data),
-  googleLogin: (credential) => api.post('/auth/google', { credential }),
+  // Phone + OTP (storefront customer flow)
+  sendOtp: (phone) => api.post('/auth/send-otp', { phone }),
+  verifyOtp: (phone, otp) => api.post('/auth/verify-otp', { phone, otp }),
+
+  // Admin login
+  adminLogin: (data) => api.post('/auth/admin-login', data),
+
+  // Session management
   logout: () => api.post('/auth/logout'),
   refreshToken: () => api.post('/auth/refresh-token'),
-  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
-  resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password }),
   getMe: () => api.get('/auth/me'),
+
+  // Commented out legacy auth methods
+  // login: (data) => api.post('/auth/login', data),
+  // register: (data) => api.post('/auth/register', data),
+  // googleLogin: (credential) => api.post('/auth/google', { credential }),
+  // forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+  // resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password }),
 };
 
 /** ============================================================

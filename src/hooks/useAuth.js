@@ -30,9 +30,9 @@ export const useAuth = () => {
   }, [dispatch, mergeGuestCart, loadWishlist]);
 
   // Step 1 — Request OTP
-  const sendOtp = useCallback(async (phone) => {
+  const sendOtp = useCallback(async (email) => {
     try {
-      const { data } = await authService.sendOtp(phone);
+      const { data } = await authService.sendOtp(email);
       toast.success(data.message || 'OTP sent successfully!');
       return data.data;
     } catch (err) {
@@ -42,9 +42,9 @@ export const useAuth = () => {
   }, []);
 
   // Step 2 — Verify OTP & log in
-  const verifyOtp = useCallback(async (phone, otp) => {
+  const verifyOtp = useCallback(async (email, otp) => {
     try {
-      const { data } = await authService.verifyOtp(phone, otp);
+      const { data } = await authService.verifyOtp(email, otp);
       await afterLogin(data.data);
       const userObj = data.data.user;
       const isGuestName = !userObj.firstName || userObj.firstName.startsWith('Guest');

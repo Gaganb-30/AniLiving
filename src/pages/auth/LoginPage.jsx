@@ -15,10 +15,10 @@ const LoginPage = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
   const { sendOtp, verifyOtp } = useAuth();
 
-  // Step in OTP flow: 'phone' or 'verify'
-  const [step, setStep] = useState('phone');
-  const [phone, setPhone] = useState('');
-  const [phoneError, setPhoneError] = useState('');
+  // Step in OTP flow: 'email' or 'verify'
+  const [step, setStep] = useState('email');
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [otpError, setOtpError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -63,24 +63,24 @@ const LoginPage = () => {
   // ---------------------------------------------------------------------------
   const handleSendOtp = async (e) => {
     e?.preventDefault();
-    setPhoneError('');
+    setEmailError('');
 
-    const cleanPhone = phone.replace(/\D/g, '');
-    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
-      setPhoneError('Please enter a valid 10-digit Indian mobile number');
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !/^\S+@\S+\.\S+$/.test(cleanEmail)) {
+      setEmailError('Please enter a valid email address');
       return;
     }
 
     setSubmitting(true);
     try {
-      const data = await sendOtp(cleanPhone);
+      const data = await sendOtp(cleanEmail);
       const timeoutSecs = Math.max(30, (data?.otpTimeoutMinutes || 1) * 60);
       setResendCooldown(timeoutSecs);
       setStep('verify');
       setOtpDigits(['', '', '', '', '', '']);
       setOtpError('');
     } catch (err) {
-      setPhoneError(err.response?.data?.message || err.message || 'Failed to send OTP.');
+      setEmailError(err.response?.data?.message || err.message || 'Failed to send OTP.');
     } finally {
       setSubmitting(false);
     }
@@ -94,8 +94,8 @@ const LoginPage = () => {
     setSubmitting(true);
     setOtpError('');
     try {
-      const cleanPhone = phone.replace(/\D/g, '');
-      const data = await sendOtp(cleanPhone);
+      const cleanEmail = email.trim().toLowerCase();
+      const data = await sendOtp(cleanEmail);
       const timeoutSecs = Math.max(30, (data?.otpTimeoutMinutes || 1) * 60);
       setResendCooldown(timeoutSecs);
       setOtpDigits(['', '', '', '', '', '']);
@@ -172,8 +172,8 @@ const LoginPage = () => {
     setSubmitting(true);
     setOtpError('');
     try {
-      const cleanPhone = phone.replace(/\D/g, '');
-      const user = await verifyOtp(cleanPhone, code);
+      const cleanEmail = email.trim().toLowerCase();
+      const user = await verifyOtp(cleanEmail, code);
       const target = user?.role === 'admin' && redirectTo === '/dashboard' ? '/admin' : redirectTo;
       navigate(target, { replace: true, state: location.state });
     } catch (err) {
@@ -186,7 +186,7 @@ const LoginPage = () => {
     <div className="container-custom section-padding">
       <Seo
         title="Sign In"
-        description="Sign in with your mobile number to view orders, manage addresses, or complete your checkout."
+        description="Sign in with your email to view orders, manage addresses, or complete your checkout."
         canonical="/login"
         noindex
       />
@@ -198,9 +198,9 @@ const LoginPage = () => {
         transition={{ duration: 0.35 }}
       >
         <AnimatePresence mode="wait">
-          {step === 'phone' ? (
+          {step === 'email' ? (
             <motion.div
-              key="step-phone"
+              key="step-email"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
@@ -212,38 +212,32 @@ const LoginPage = () => {
                 <p>
                   {redirectTo.includes('checkout')
                     ? 'Quick verification to proceed to your order'
-                    : 'Enter your phone number to receive a one-time password.'}
+                    : 'Enter your email to receive a one-time password.'}
                 </p>
               </div>
 
               <form className="auth-form" onSubmit={handleSendOtp}>
                 <div className="form-field">
-                  <label htmlFor="phone">Mobile Number</label>
-                  <div className="input-with-icon phone-input-wrapper">
-                    <span className="phone-prefix">+91</span>
-                    <input
-                      id="phone"
-                      type="tel"
-                      inputMode="numeric"
-                      autoComplete="tel-national"
-                      autoFocus
-                      placeholder="98765 43210"
-                      maxLength={10}
-                      value={phone}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                        setPhone(val);
-                        if (phoneError) setPhoneError('');
-                      }}
-                    />
-                  </div>
-                  {phoneError && <span className="form-error">{phoneError}</span>}
+                  <label htmlFor="email">Email Address</label>
+                  <input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    autoFocus
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (emailError) setEmailError('');
+                    }}
+                  />
+                  {emailError && <span className="form-error">{emailError}</span>}
                 </div>
 
                 <button
                   type="submit"
                   className="btn-primary auth-submit"
-                  disabled={submitting || phone.replace(/\D/g, '').length !== 10}
+                  disabled={submitting || !email.trim()}
                 >
                   {submitting ? 'Sending OTP…' : 'Get OTP'}
                 </button>
@@ -255,7 +249,7 @@ const LoginPage = () => {
               */}
 
               <div className="auth-helper-note">
-                🔒 We never share your number.
+                🔒 We never share your email.
               </div>
             </motion.div>
           ) : (
@@ -267,18 +261,18 @@ const LoginPage = () => {
               transition={{ duration: 0.2 }}
             >
               <div className="auth-head">
-                <span className="auth-emoji">📱</span>
+                <span className="auth-emoji">✉️</span>
                 <h1>Verify Code</h1>
                 <div className="auth-phone-display">
-                  <span>Sent to <strong>+91 {phone}</strong></span>
+                  <span>Sent to <strong>{email}</strong></span>
                   <button
                     type="button"
                     className="auth-change-phone-btn"
                     onClick={() => {
-                      setStep('phone');
+                      setStep('email');
                       setOtpError('');
                     }}
-                    title="Change phone number"
+                    title="Change email address"
                   >
                     <HiPencilAlt /> Edit
                   </button>
@@ -345,11 +339,11 @@ const LoginPage = () => {
                   type="button"
                   className="auth-link-subtle"
                   onClick={() => {
-                    setStep('phone');
+                    setStep('email');
                     setOtpError('');
                   }}
                 >
-                  ← Back to phone entry
+                  ← Back to email entry
                 </button>
               </div>
             </motion.div>

@@ -4,9 +4,9 @@ import api from './api';
  *  AUTH
  *  ============================================================ */
 export const authService = {
-  // Phone + OTP (storefront customer flow)
-  sendOtp: (phone) => api.post('/auth/send-otp', { phone }),
-  verifyOtp: (phone, otp) => api.post('/auth/verify-otp', { phone, otp }),
+  // Email + OTP (storefront customer flow)
+  sendOtp: (email) => api.post('/auth/send-otp', { email }),
+  verifyOtp: (email, otp) => api.post('/auth/verify-otp', { email, otp }),
 
   // Admin login
   adminLogin: (data) => api.post('/auth/admin-login', data),

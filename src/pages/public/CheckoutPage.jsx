@@ -81,7 +81,7 @@ const CheckoutPage = () => {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('razorpay');
+  const [paymentMethod, setPaymentMethod] = useState(() => (integrations?.razorpayEnabled === false ? 'cod' : 'razorpay'));
   const [placing, setPlacing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -118,10 +118,16 @@ const CheckoutPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
-  // COD can be switched off by the admin; fall back to online payment
+  // Adjust payment method if the selected one is disabled
   useEffect(() => {
-    if (paymentMethod === 'cod' && settings.codEnabled === false) setPaymentMethod('razorpay');
-  }, [settings.codEnabled, paymentMethod]);
+    const isOnlineUnavailable = integrations?.razorpayEnabled === false;
+    const isCodUnavailable = settings.codEnabled === false;
+    if (isOnlineUnavailable && paymentMethod === 'razorpay' && !isCodUnavailable) {
+      setPaymentMethod('cod');
+    } else if (isCodUnavailable && paymentMethod === 'cod' && !isOnlineUnavailable) {
+      setPaymentMethod('razorpay');
+    }
+  }, [integrations?.razorpayEnabled, settings.codEnabled, paymentMethod]);
 
   // -------------------------------------------------------------------
   // Totals — mirrored server-side, shown here so there are no surprises
@@ -441,7 +447,6 @@ const CheckoutPage = () => {
                 <span className="payment-option-body">
                   <strong><HiOutlineCreditCard /> Pay online</strong>
                   <span>UPI, credit &amp; debit cards, netbanking, wallets and EMI — all through Razorpay.</span>
-                  {onlineDisabled && <em>Temporarily unavailable</em>}
                 </span>
               </label>
 
@@ -527,7 +532,7 @@ const CheckoutPage = () => {
               type="button"
               className="btn-primary checkout-place-btn"
               onClick={placeOrder}
-              disabled={placing || !selectedAddress}
+              disabled={placing || !selectedAddress || (paymentMethod === 'razorpay' && onlineDisabled) || (paymentMethod === 'cod' && codDisabled)}
             >
               {placing
                 ? 'Processing…'

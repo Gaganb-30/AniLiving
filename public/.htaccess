@@ -2,6 +2,20 @@
   RewriteEngine On
   RewriteBase /
 
+  # Ensure correct Content-Type headers for SEO crawlers
+  <IfModule mod_headers.c>
+    <Files "sitemap.xml">
+      Header set Content-Type "application/xml; charset=utf-8"
+    </Files>
+    <Files "robots.txt">
+      Header set Content-Type "text/plain; charset=utf-8"
+    </Files>
+  </IfModule>
+
+  # Dynamic sitemap proxy fallback via PHP if static file does not exist
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
   # If requested path exists as a physical file or folder, serve directly
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d

@@ -13,4 +13,4 @@ Disallow: /register
 Disallow: /reset-password
 Disallow: /api/
 
-Sitemap: http://localhost:5173/sitemap.xml
+Sitemap: http://aniliving.com/sitemap.xml

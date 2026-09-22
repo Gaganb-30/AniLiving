@@ -13,4 +13,4 @@ Disallow: /register
 Disallow: /reset-password
 Disallow: /api/
 
-Sitemap: http://aniliving.com/sitemap.xml
+Sitemap: https://aniliving.com/sitemap.xml

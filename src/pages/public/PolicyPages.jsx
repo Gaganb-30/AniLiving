@@ -41,23 +41,49 @@ export const PrivacyPolicyPage = () => (
   </PolicyPage>
 );
 
-export const RefundPolicyPage = () => (
-  <PolicyPage title="Refund Policy" path="/refund-policy" description="AniLiving refund and return terms, timelines and how refunds are processed.">
-    <p>At AniLiving, we want you to be completely satisfied with your purchase. If you're not happy, we're here to help.</p>
-    <h3 className="text-text font-bold text-lg mt-6">Eligibility for Refund</h3>
-    <ul className="list-disc pl-5 space-y-1"><li>Request must be made within 7 days of delivery</li><li>Product must be unused and in original packaging</li><li>Products damaged during transit are eligible for immediate replacement or refund</li><li>Perishable items (food, treats) are non-refundable unless defective</li></ul>
-    <h3 className="text-text font-bold text-lg mt-6">Refund Process</h3>
-    <ul className="list-disc pl-5 space-y-1"><li>Contact us at info@aniliving.com with your order number</li><li>We will review your request within 24-48 hours</li><li>Approved refunds are processed within 5-7 business days</li><li>Refunds are credited to the original payment method</li></ul>
-    <h3 className="text-text font-bold text-lg mt-6">Non-Refundable Items</h3>
-    <p>Gift cards, customized products, and items on final sale are not eligible for refunds.</p>
+export const ExchangeReplacementPolicyPage = () => (
+  <PolicyPage
+    title="Exchange & Replacement Policy"
+    path="/exchange-and-replacement-policy"
+    description="AniLiving exchange and replacement policy, conditions, and process."
+  >
+    <p>
+      At AniLiving, we want you to be satisfied with your purchase. While we do not offer refunds or returns for change of mind, eligible products can be exchanged or replaced as per the conditions below.
+    </p>
+
+    <h3 className="text-text font-bold text-lg mt-6">Eligibility for Exchange</h3>
+    <ul className="list-disc pl-5 space-y-1.5">
+      <li>Exchange requests must be raised within 7 days of delivery.</li>
+      <li>The product must be unused, undamaged, and in its original packaging.</li>
+      <li>All original tags, accessories, and packaging must be available.</li>
+      <li>Products damaged during transit, defective products, or incorrect products received are eligible for replacement or exchange after verification.</li>
+      <li>Products cannot be exchanged simply because of a change of mind, unless otherwise approved by AniLiving.</li>
+    </ul>
+
+    <h3 className="text-text font-bold text-lg mt-6">Exchange Process</h3>
+    <ul className="list-disc pl-5 space-y-1.5">
+      <li>
+        Contact us at <a href="mailto:support@aniliving.com" className="text-primary font-medium hover:underline">support@aniliving.com</a> with your Order Number and reason for exchange.
+      </li>
+      <li>For damaged, defective, or incorrect products, please share clear photos or videos of the product and packaging.</li>
+      <li>Our team will review your request within 24–48 hours.</li>
+      <li>Once the exchange request is approved, we will provide further instructions for product pickup or return shipping.</li>
+      <li>The replacement product will be dispatched after the returned product is received and verified.</li>
+    </ul>
   </PolicyPage>
 );
+
+export const RefundPolicyPage = ExchangeReplacementPolicyPage;
+export const ExchangePolicyPage = ExchangeReplacementPolicyPage;
 
 export const ShippingPolicyPage = () => (
   <PolicyPage title="Shipping Policy" path="/shipping-policy" description="Delivery timelines, shipping charges and coverage for AniLiving orders.">
     <p>AniLiving is committed to delivering your orders quickly and safely across India.</p>
     <h3 className="text-text font-bold text-lg mt-6">Shipping Charges</h3>
-    <ul className="list-disc pl-5 space-y-1"><li><strong className="text-text">Prepaid Orders:</strong> Free shipping on all prepaid orders</li><li><strong className="text-text">COD Orders:</strong> A shipping fee may apply based on location</li></ul>
+    <ul className="list-disc pl-5 space-y-1">
+      <li><strong className="text-text">Free Shipping:</strong> Free delivery on all orders across India</li>
+      {/* <li><strong className="text-text">COD Orders:</strong> A shipping fee may apply based on location</li> */}
+    </ul>
     <h3 className="text-text font-bold text-lg mt-6">Delivery Timeline</h3>
     <ul className="list-disc pl-5 space-y-1"><li>Order processing: 1-2 business days</li><li>Delivery: 3-7 business days (metro cities: 3-4 days, other areas: 5-7 days)</li></ul>
     <h3 className="text-text font-bold text-lg mt-6">Order Tracking</h3>
@@ -71,7 +97,7 @@ export const CancellationPolicyPage = () => (
     <h3 className="text-text font-bold text-lg mt-6">Before Shipping</h3>
     <p>Orders can be cancelled anytime before they are shipped. Full refund will be processed.</p>
     <h3 className="text-text font-bold text-lg mt-6">After Shipping</h3>
-    <p>Once an order is shipped, it cannot be cancelled. You may return the product after delivery under our Return Policy.</p>
+    <p>Once an order is shipped, it cannot be cancelled. Eligible products can be exchanged or replaced after delivery under our Exchange & Replacement Policy.</p>
     <h3 className="text-text font-bold text-lg mt-6">How to Cancel</h3>
     <p>Log into your account, go to My Orders, and click "Cancel Order". Alternatively, email us at info@aniliving.com.</p>
   </PolicyPage>

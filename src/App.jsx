@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'react-hot-toast';
 
@@ -35,7 +35,7 @@ const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage'));
 // Policy pages share one module
 const PolicyPages = () => import('./pages/public/PolicyPages');
 const PrivacyPolicyPage = lazy(() => PolicyPages().then((m) => ({ default: m.PrivacyPolicyPage })));
-const RefundPolicyPage = lazy(() => PolicyPages().then((m) => ({ default: m.RefundPolicyPage })));
+const ExchangeReplacementPolicyPage = lazy(() => PolicyPages().then((m) => ({ default: m.ExchangeReplacementPolicyPage || m.RefundPolicyPage })));
 const ShippingPolicyPage = lazy(() => PolicyPages().then((m) => ({ default: m.ShippingPolicyPage })));
 const CancellationPolicyPage = lazy(() => PolicyPages().then((m) => ({ default: m.CancellationPolicyPage })));
 const TermsPage = lazy(() => PolicyPages().then((m) => ({ default: m.TermsPage })));
@@ -109,7 +109,9 @@ const router = createBrowserRouter([
 
       // Policies (required for Razorpay onboarding)
       { path: 'privacy-policy', element: <Page><PrivacyPolicyPage /></Page> },
-      { path: 'refund-policy', element: <Page><RefundPolicyPage /></Page> },
+      { path: 'exchange-and-replacement-policy', element: <Page><ExchangeReplacementPolicyPage /></Page> },
+      { path: 'refund-policy', element: <Navigate to="/exchange-and-replacement-policy" replace /> },
+      { path: 'exchange-policy', element: <Navigate to="/exchange-and-replacement-policy" replace /> },
       { path: 'shipping-policy', element: <Page><ShippingPolicyPage /></Page> },
       { path: 'cancellation-policy', element: <Page><CancellationPolicyPage /></Page> },
       { path: 'terms-and-conditions', element: <Page><TermsPage /></Page> },

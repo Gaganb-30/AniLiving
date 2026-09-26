@@ -35,7 +35,7 @@ const Footer = () => {
 
   const legalLinks = [
     { name: 'Privacy Policy', path: '/privacy-policy' },
-    { name: 'Refund Policy', path: '/refund-policy' },
+    { name: 'Exchange & Replacement Policy', path: '/exchange-and-replacement-policy' },
     { name: 'Shipping Policy', path: '/shipping-policy' },
     { name: 'Terms & Conditions', path: '/terms-and-conditions' },
     { name: 'Cancellation Policy', path: '/cancellation-policy' },

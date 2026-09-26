@@ -81,7 +81,7 @@ const CheckoutPage = () => {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState(() => (integrations?.razorpayEnabled === false ? 'cod' : 'razorpay'));
+  const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [placing, setPlacing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -119,6 +119,8 @@ const CheckoutPage = () => {
   }, [isAuthenticated]);
 
   // Adjust payment method if the selected one is disabled
+  // (Cash on delivery option commented out for now - online Razorpay only)
+  /*
   useEffect(() => {
     const isOnlineUnavailable = integrations?.razorpayEnabled === false;
     const isCodUnavailable = settings.codEnabled === false;
@@ -128,6 +130,7 @@ const CheckoutPage = () => {
       setPaymentMethod('razorpay');
     }
   }, [integrations?.razorpayEnabled, settings.codEnabled, paymentMethod]);
+  */
 
   // -------------------------------------------------------------------
   // Totals — mirrored server-side, shown here so there are no surprises
@@ -450,6 +453,7 @@ const CheckoutPage = () => {
                 </span>
               </label>
 
+              {/* Cash on delivery option - commented out for now (Razorpay online only)
               <label className={`payment-option ${paymentMethod === 'cod' ? 'is-selected' : ''} ${codDisabled ? 'is-disabled' : ''}`}>
                 <input
                   type="radio"
@@ -464,6 +468,7 @@ const CheckoutPage = () => {
                   {codDisabled && <em>Currently unavailable</em>}
                 </span>
               </label>
+              */}
             </div>
           </section>
         </motion.div>
@@ -547,7 +552,7 @@ const CheckoutPage = () => {
 
             <p className="cart-secure-note">
               🔒 Payments are processed securely by Razorpay. By placing this order you agree to our{' '}
-              <Link to="/terms-and-conditions">Terms</Link> and <Link to="/refund-policy">Refund Policy</Link>.
+              <Link to="/terms-and-conditions">Terms</Link> and <Link to="/exchange-and-replacement-policy">Exchange & Replacement Policy</Link>.
             </p>
           </div>
         </aside>

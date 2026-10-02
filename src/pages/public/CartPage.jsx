@@ -11,6 +11,7 @@ import Seo from '../../components/seo/Seo';
 import { useCart } from '../../hooks/useCart';
 import { useSettings } from '../../hooks/useSettings';
 import { formatCurrency, variantLabel } from '../../utils/format';
+import { startFastrrCheckout } from '../../utils/fastrr';
 
 /** One line in the cart, shared by the active and saved-for-later lists */
 const CartLine = ({ item, onQuantity, onRemove, onSave, saved }) => (
@@ -74,7 +75,7 @@ const CartLine = ({ item, onQuantity, onRemove, onSave, saved }) => (
 const CartPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.auth);
-  const { settings } = useSettings();
+  const { settings, integrations } = useSettings();
   const {
     activeItems, savedItems, subtotal, isEmpty, coupon,
     updateQuantity, removeItem, toggleSaveForLater, applyCoupon, removeCoupon, refresh,
@@ -82,6 +83,27 @@ const CartPage = () => {
 
   const [couponCode, setCouponCode] = useState('');
   const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [fastrrLoading, setFastrrLoading] = useState(false);
+
+  const handleFastrrCheckout = async (e) => {
+    setFastrrLoading(true);
+    try {
+      await startFastrrCheckout({
+        items: activeItems.map((item) => ({
+          productId: item.productId || item.product?._id || item.id,
+          variantId: item.variantId || item.variant?._id || item.productId || item.id,
+          quantity: item.quantity,
+        })),
+        redirectUrl: `${window.location.origin}/order-success`,
+        event: e,
+        env: integrations?.fastrrEnv || 'staging',
+      });
+    } catch {
+      // toast handled in startFastrrCheckout
+    } finally {
+      setFastrrLoading(false);
+    }
+  };
 
   // Pull the authoritative server cart on mount so prices/stock are current
   useEffect(() => { if (isAuthenticated) refresh(); }, [isAuthenticated, refresh]);
@@ -218,16 +240,33 @@ const CartPage = () => {
               Inclusive of all taxes · GST included
             </div>
 
+            {/* ── Buy Now (Fastrr 1-Click Checkout) ───────────────── */}
             <button
               type="button"
+              id="buyNow"
               className="btn-primary cart-checkout-btn"
-              onClick={() => navigate(isAuthenticated ? '/checkout' : '/login?redirect=/checkout')}
-              disabled={activeItems.length === 0}
+              onClick={handleFastrrCheckout}
+              disabled={activeItems.length === 0 || fastrrLoading}
             >
-              {isAuthenticated ? 'Proceed to checkout' : 'Sign in to check out'}
+              {fastrrLoading ? 'Connecting…' : 'Buy Now'}
             </button>
 
-            <p className="cart-secure-note">🔒 Secure payment via Razorpay — UPI, cards, netbanking &amp; COD</p>
+            {/* ── Standard Checkout Button (Commented out — Fastrr exclusive) ── */}
+            {/*
+            <button
+              type="button"
+              className="btn-secondary cart-checkout-btn"
+              onClick={() => navigate(isAuthenticated ? '/checkout' : '/login?redirect=/checkout')}
+              disabled={activeItems.length === 0}
+              style={{ marginTop: '8px', opacity: 0.85, fontSize: '0.9rem' }}
+            >
+              {isAuthenticated ? 'Standard Multi-step Checkout →' : 'Sign in for Standard Checkout →'}
+            </button>
+            */}
+
+            <p className="cart-secure-note">
+              🔒 100% Secure Checkout · UPI, Cards, Netbanking &amp; COD supported
+            </p>
           </div>
         </aside>
       </div>

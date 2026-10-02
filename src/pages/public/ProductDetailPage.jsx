@@ -14,6 +14,8 @@ import Seo, { productSchema, breadcrumbSchema, reviewSchema } from '../../compon
 import { productService, reviewService } from '../../services/apiServices';
 import { useCart } from '../../hooks/useCart';
 import { useWishlist } from '../../hooks/useWishlist';
+import { useSettings } from '../../hooks/useSettings';
+import { startFastrrCheckout } from '../../utils/fastrr';
 import {
   formatCurrency, discountPercent, colorToCss, timeAgo, errorMessage,
 } from '../../utils/format';
@@ -53,6 +55,7 @@ const ProductDetailPage = () => {
   const { addItem } = useCart();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const { isAuthenticated } = useSelector((state) => state.auth);
+  const { integrations } = useSettings();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -231,13 +234,34 @@ const ProductDetailPage = () => {
     setAdding(false);
   };
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async (e) => {
     if (needsVariantChoice) {
       toast.error('Please choose all options first.');
       return;
     }
     if (!inStock) return;
 
+    // Fastrr 1-Click Checkout
+    if (integrations?.fastrrEnabled !== false) {
+      try {
+        await startFastrrCheckout({
+          items: [{
+            productId: product._id,
+            variantId: activeVariant?._id || product._id,
+            quantity,
+          }],
+          redirectUrl: `${window.location.origin}/order-success`,
+          event: e,
+          env: integrations?.fastrrEnv || 'staging',
+        });
+        return;
+      } catch (err) {
+        console.error('Fastrr checkout failed, falling back to standard checkout:', err);
+      }
+    }
+
+    // ── Previous checkout code (Commented out — Fastrr exclusive) ──
+    /*
     const buyNowItem = {
       productId: product._id,
       name: product.name,
@@ -261,6 +285,7 @@ const ProductDetailPage = () => {
     } else {
       navigate('/checkout?buyNow=1', { state: { buyNowItem } });
     }
+    */
   };
 
   const submitReview = async (event) => {
@@ -497,7 +522,7 @@ const ProductDetailPage = () => {
 
               <button
                 type="button"
-                className="btn-primary pdp-add-btn"
+                className="btn-secondary pdp-add-btn"
                 onClick={() => handleAddToCart()}
                 disabled={!inStock || adding || needsVariantChoice}
               >
@@ -507,7 +532,8 @@ const ProductDetailPage = () => {
 
               <button
                 type="button"
-                className="btn-secondary pdp-buy-btn"
+                id="buyNow"
+                className="btn-primary pdp-buy-btn"
                 onClick={handleBuyNow}
                 disabled={!inStock || adding || needsVariantChoice}
               >

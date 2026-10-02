@@ -15,6 +15,7 @@ import { useCart } from '../../hooks/useCart';
 import { useAuth } from '../../hooks/useAuth';
 import { useSettings } from '../../hooks/useSettings';
 import { openRazorpayCheckout } from '../../utils/razorpay';
+import { startFastrrCheckout } from '../../utils/fastrr';
 import { formatCurrency, variantLabel, errorMessage } from '../../utils/format';
 
 const INDIAN_STATES = [
@@ -81,9 +82,26 @@ const CheckoutPage = () => {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('razorpay');
+  const [paymentMethod, setPaymentMethod] = useState('fastrr');
   const [placing, setPlacing] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const handleFastrrCheckout = async (e) => {
+    try {
+      await startFastrrCheckout({
+        items: checkoutItems.map((item) => ({
+          productId: item.productId || item.id,
+          variantId: item.variantId || item.productId || item.id,
+          quantity: item.quantity,
+        })),
+        redirectUrl: `${window.location.origin}/order-success`,
+        event: e,
+        env: integrations?.fastrrEnv || 'staging',
+      });
+    } catch {
+      // toast handled in startFastrrCheckout
+    }
+  };
 
   const { updateUser: syncUser } = useAuth();
   const isGuest = !user?.firstName || user.firstName.startsWith('Guest');
@@ -190,6 +208,11 @@ const CheckoutPage = () => {
   // Placing the order
   // -------------------------------------------------------------------
   const placeOrder = async () => {
+    if (paymentMethod === 'fastrr') {
+      await handleFastrrCheckout();
+      return;
+    }
+
     if (!selectedAddress) {
       toast.error('Please add a delivery address first.');
       setShowAddressForm(true);
@@ -288,6 +311,40 @@ const CheckoutPage = () => {
 
       <div className="checkout-layout">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="checkout-main">
+          {/* ── Express 1-Click Checkout ──────────────────── */}
+          <section
+            className="checkout-card"
+            style={{
+              border: '2px solid var(--color-primary)',
+              background: 'linear-gradient(135deg, rgba(255, 214, 10, 0.12) 0%, rgba(255, 255, 255, 0.98) 100%)',
+              marginBottom: '20px',
+              padding: '20px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '1.2rem', color: 'var(--color-primary-dark)' }}>⚡</span>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#0047ae', fontWeight: '700' }}>
+                    Express 1-Click Checkout
+                  </h3>
+                </div>
+                <p style={{ margin: '6px 0 0', fontSize: '0.9rem', color: '#555', maxWidth: '480px' }}>
+                  Instant OTP-authenticated checkout with UPI, Cards, Netbanking &amp; COD.
+                </p>
+              </div>
+              <button
+                type="button"
+                id="buyNow"
+                className="btn-primary"
+                onClick={handleFastrrCheckout}
+                disabled={checkoutItems.length === 0}
+              >
+                Buy Now
+              </button>
+            </div>
+          </section>
+
           {/* ── Delivery address ─────────────────────────────────── */}
           <section className="checkout-card">
             <header className="checkout-card-head">
@@ -439,6 +496,22 @@ const CheckoutPage = () => {
             </header>
 
             <div className="payment-options">
+              <label
+                className={`payment-option ${paymentMethod === 'fastrr' ? 'is-selected' : ''}`}
+                style={paymentMethod === 'fastrr' ? { borderColor: 'var(--color-primary)', backgroundColor: 'var(--color-accent-light)' } : undefined}
+              >
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={paymentMethod === 'fastrr'}
+                  onChange={() => setPaymentMethod('fastrr')}
+                />
+                <span className="payment-option-body">
+                  <strong><span style={{ color: 'var(--color-navy)' }}>⚡</span> 1-Click Checkout (Recommended)</strong>
+                  <span>Instant checkout with UPI, Cards, Netbanking &amp; Cash on Delivery.</span>
+                </span>
+              </label>
+
               <label className={`payment-option ${paymentMethod === 'razorpay' ? 'is-selected' : ''} ${onlineDisabled ? 'is-disabled' : ''}`}>
                 <input
                   type="radio"
@@ -448,8 +521,8 @@ const CheckoutPage = () => {
                   onChange={() => setPaymentMethod('razorpay')}
                 />
                 <span className="payment-option-body">
-                  <strong><HiOutlineCreditCard /> Pay online</strong>
-                  <span>UPI, credit &amp; debit cards, netbanking, wallets and EMI — all through Razorpay.</span>
+                  <strong><HiOutlineCreditCard /> Standard Online Payment</strong>
+                  <span>UPI, credit &amp; debit cards, netbanking, wallets and EMI — via Razorpay gateway.</span>
                 </span>
               </label>
 

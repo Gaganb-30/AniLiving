@@ -191,6 +191,14 @@ export const userAdminService = {
   updateUserStatus: (id, isActive) => api.patch(`/users/${id}/status`, { isActive }),
 };
 
+/** ============================================================
+ *  FASTRR CHECKOUT
+ *  ============================================================ */
+export const fastrrService = {
+  getCheckoutToken: (data) => api.post('/fastrr/checkout-token', data),
+  getFastrrOrder: (oid) => api.get(`/fastrr/order/${oid}`),
+};
+
 /**
  * Trigger a browser download from a blob response (invoice PDF, CSV export).
  */

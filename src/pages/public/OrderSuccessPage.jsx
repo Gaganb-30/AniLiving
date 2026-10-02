@@ -4,29 +4,60 @@ import { motion } from 'framer-motion';
 import { HiCheckCircle, HiOutlineDownload, HiOutlineTruck } from 'react-icons/hi';
 import Seo from '../../components/seo/Seo';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { orderService, downloadBlob } from '../../services/apiServices';
+import { orderService, fastrrService, downloadBlob } from '../../services/apiServices';
 import { formatCurrency, formatDate, variantLabel } from '../../utils/format';
 
 const OrderSuccessPage = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('order');
+  // Fastrr redirects with ?oid=<fastrr_order_id>
+  const fastrrOid = searchParams.get('oid');
 
   const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(Boolean(orderId));
+  const [loading, setLoading] = useState(Boolean(orderId || fastrrOid));
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
-    if (!orderId) return;
-    orderService.getOrderById(orderId)
-      .then(({ data }) => setOrder(data.data.order))
-      .catch(() => setOrder(null))
-      .finally(() => setLoading(false));
-  }, [orderId]);
+    // Standard checkout: fetch by local order ID
+    if (orderId) {
+      orderService.getOrderById(orderId)
+        .then(({ data }) => setOrder(data.data.order))
+        .catch(() => setOrder(null))
+        .finally(() => setLoading(false));
+      return;
+    }
+
+    // Fastrr checkout: fetch by Fastrr order ID from the dedicated endpoint
+    if (fastrrOid) {
+      // Retry a few times — the webhook may arrive a second or two after redirect
+      let attempts = 0;
+      const maxAttempts = 5;
+      const tryFetch = () => {
+        fastrrService.getFastrrOrder(fastrrOid)
+          .then(({ data }) => {
+            setOrder(data.data.order);
+            setLoading(false);
+          })
+          .catch(() => {
+            attempts += 1;
+            if (attempts < maxAttempts) {
+              setTimeout(tryFetch, 2000);
+            } else {
+              setOrder(null);
+              setLoading(false);
+            }
+          });
+      };
+      tryFetch();
+    }
+  }, [orderId, fastrrOid]);
 
   const downloadInvoice = async () => {
+    const invoiceId = orderId || order?._id;
+    if (!invoiceId) return;
     setDownloading(true);
     try {
-      const { data } = await orderService.downloadInvoice(orderId);
+      const { data } = await orderService.downloadInvoice(invoiceId);
       downloadBlob(data, `invoice-${order.orderNumber}.pdf`);
     } catch {
       // The invoice is also available later from My Orders

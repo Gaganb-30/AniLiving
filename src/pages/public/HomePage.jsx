@@ -42,6 +42,8 @@ const carouselSlideVariants = {
 const ProductRail = ({ title, subtitle, icon, products, loading, viewAllTo, skeletonCount = 4, marqueeSpeed = 30 }) => {
   if (!loading && (!products || products.length === 0)) return null;
 
+  const isMarqueeEnabled = Boolean(products && products.length > 2);
+
   return (
     <section className="container-custom section-padding rail-section">
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }} variants={stagger}>
@@ -58,7 +60,7 @@ const ProductRail = ({ title, subtitle, icon, products, loading, viewAllTo, skel
             {Array.from({ length: skeletonCount }).map((_, i) => <ProductCardSkeleton key={i} />)}
           </div>
         ) : (
-          <AutoMarquee speed={marqueeSpeed} className="rail-marquee" showControls={true}>
+          <AutoMarquee speed={marqueeSpeed} className="rail-marquee" showControls={true} enabled={isMarqueeEnabled}>
             <div className="product-grid">
               {products.map((product, i) => (
                 <motion.div key={product._id} variants={fadeInUp} custom={i}>
@@ -349,7 +351,7 @@ const HomePage = () => {
               ))}
             </motion.div>
           ) : (
-            <AutoMarquee speed={22} className="categories-marquee" showControls={true}>
+            <AutoMarquee speed={22} className="categories-marquee" showControls={true} enabled={Boolean(categories && categories.length > 2)}>
               <motion.div className="category-grid" variants={stagger}>
                 {categories.slice(0, 10).map((cat, i) => (
                   <motion.div key={cat._id} variants={fadeInUp} custom={i}>

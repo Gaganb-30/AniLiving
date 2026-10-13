@@ -12,8 +12,17 @@ const AutoMarquee = ({
   pauseOnHover = true,
   showControls = false,
   className = '',
+  enabled = true,
 }) => {
   const [isPaused, setIsPaused] = useState(false);
+
+  if (!enabled) {
+    return (
+      <div className={`auto-marquee-disabled ${className}`}>
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className={`auto-marquee-wrapper ${pauseOnHover ? 'pause-on-hover' : ''} ${isPaused ? 'is-paused' : ''} ${className}`}>

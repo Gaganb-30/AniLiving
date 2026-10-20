@@ -24,21 +24,48 @@ const FASTRR_ASSETS = {
 let scriptPromise = null;
 
 /**
+ * Resolve Fastrr target environment safely.
+ * Priority: explicitly passed env -> VITE_FASTRR_ENV -> PROD build (production) -> staging
+ */
+export const resolveFastrrEnv = (env) => {
+  if (env === 'production' || env === 'staging') return env;
+  if (import.meta.env.VITE_FASTRR_ENV === 'production' || import.meta.env.VITE_FASTRR_ENV === 'staging') {
+    return import.meta.env.VITE_FASTRR_ENV;
+  }
+  return import.meta.env.PROD ? 'production' : 'staging';
+};
+
+/**
  * Load Fastrr CSS and JS dynamically once when needed
  *
- * @param {'staging'|'production'} [env='staging']
+ * @param {'staging'|'production'} [env]
  * @returns {Promise<boolean>}
  */
-export const loadFastrrAssets = (env = 'staging') => {
+export const loadFastrrAssets = (env) => {
   if (typeof window === 'undefined') return Promise.resolve(false);
-  if (window.HeadlessCheckout?.addToCart) return Promise.resolve(true);
+
+  const targetEnv = resolveFastrrEnv(env);
+  const config = FASTRR_ASSETS[targetEnv] || FASTRR_ASSETS.production;
+
+  // Check if an existing script is already in DOM
+  const existing = document.querySelector(`script[src*="channels/shopify.js"]`);
+  if (existing) {
+    // If the existing script does not match the target environment (e.g. previously loaded staging), remove it
+    if (existing.src !== config.js) {
+      existing.remove();
+      const existingCss = document.querySelector(`link[href*="shopify.css"]`);
+      if (existingCss) existingCss.remove();
+      try { delete window.HeadlessCheckout; } catch { window.HeadlessCheckout = undefined; }
+      scriptPromise = null;
+    } else if (window.HeadlessCheckout?.addToCart) {
+      return Promise.resolve(true);
+    }
+  }
 
   if (scriptPromise) return scriptPromise;
 
-  const config = FASTRR_ASSETS[env] || FASTRR_ASSETS.staging;
-
   // 1. Ensure CSS is appended
-  if (!document.querySelector(`link[href*="shopify.css"]`)) {
+  if (!document.querySelector(`link[href="${config.css}"]`)) {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = config.css;
@@ -47,13 +74,6 @@ export const loadFastrrAssets = (env = 'staging') => {
 
   // 2. Load JS
   scriptPromise = new Promise((resolve) => {
-    const existing = document.querySelector(`script[src*="channels/shopify.js"]`);
-    if (existing) {
-      existing.addEventListener('load', () => resolve(true));
-      existing.addEventListener('error', () => resolve(false));
-      if (window.HeadlessCheckout) return resolve(true);
-    }
-
     const script = document.createElement('script');
     script.src = config.js;
     script.async = true;
@@ -86,7 +106,7 @@ export const startFastrrCheckout = async ({
   items = [],
   redirectUrl,
   event,
-  env = 'staging',
+  env,
 }) => {
   if (!items || items.length === 0) {
     toast.error('Your cart is empty.');
@@ -96,8 +116,9 @@ export const startFastrrCheckout = async ({
   const toastId = toast.loading('Connecting to checkout…');
 
   try {
+    const targetEnv = resolveFastrrEnv(env);
     // 1. Load checkout assets
-    const loaded = await loadFastrrAssets(env);
+    const loaded = await loadFastrrAssets(targetEnv);
     if (!loaded) {
       toast.dismiss(toastId);
       toast.error('Could not load checkout modal. Please check your connection.');

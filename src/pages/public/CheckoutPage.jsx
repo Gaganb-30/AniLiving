@@ -96,7 +96,7 @@ const CheckoutPage = () => {
         })),
         redirectUrl: `${window.location.origin}/order-success`,
         event: e,
-        env: integrations?.fastrrEnv || 'staging',
+        env: integrations?.fastrrEnv,
       });
     } catch {
       // toast handled in startFastrrCheckout

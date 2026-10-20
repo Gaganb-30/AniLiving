@@ -252,7 +252,7 @@ const ProductDetailPage = () => {
           }],
           redirectUrl: `${window.location.origin}/order-success`,
           event: e,
-          env: integrations?.fastrrEnv || 'staging',
+          env: integrations?.fastrrEnv,
         });
         return;
       } catch (err) {

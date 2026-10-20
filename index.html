@@ -1,71 +1,78 @@
 <!doctype html>
 <html lang="en-IN">
-  <head>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-P7RDDJLF');</script>
-    <!-- End Google Tag Manager -->
 
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<head>
+  <!-- Google Tag Manager -->
+  <script>(function (w, d, s, l, i) {
+      w[l] = w[l] || []; w[l].push({
+        'gtm.start':
+          new Date().getTime(), event: 'gtm.js'
+      }); var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+          'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-P7RDDJLF');</script>
+  <!-- End Google Tag Manager -->
 
-    <link rel="icon" type="image/png" href="/logo.png" />
-    <meta name="theme-color" content="#FFD60A" />
-    <meta name="author" content="AniLiving" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-    <!-- Baseline metadata. Every route replaces these at runtime through the
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <meta name="theme-color" content="#FFD60A" />
+  <meta name="author" content="AniLiving" />
+
+  <!-- Baseline metadata. Every route replaces these at runtime through the
          Seo component (react-helmet-async); these values are what a crawler
          or link preview sees before hydration. -->
-    <title>AniLiving — Premium Pet Supplies | Everything Your Pet Deserves</title>
-    <meta name="description" content="Shop premium pet supplies at AniLiving — food, treats, toys, grooming and accessories for dogs, cats and every companion. Free delivery on prepaid orders across India." />
-    <meta name="keywords" content="pet supplies India, dog food, cat food, pet toys, pet grooming, pet accessories, AniLiving" />
-    <meta name="robots" content="index, follow, max-image-preview:large" />
+  <title>AniLiving — Premium Pet Supplies | Everything Your Pet Deserves</title>
+  <meta name="description"
+    content="Shop premium pet supplies at AniLiving — food, treats, toys, grooming and accessories for dogs, cats and every companion. Free delivery on prepaid orders across India." />
+  <meta name="keywords"
+    content="pet supplies India, dog food, cat food, pet toys, pet grooming, pet accessories, AniLiving" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
 
-    <meta property="og:site_name" content="AniLiving" />
-    <meta property="og:title" content="AniLiving — Everything Your Pet Deserves" />
-    <meta property="og:description" content="Premium pet supplies for dogs, cats and every companion. Free delivery on prepaid orders." />
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="en_IN" />
-    <meta property="og:image" content="/images/hero-banner.png" />
+  <meta property="og:site_name" content="AniLiving" />
+  <meta property="og:title" content="AniLiving — Everything Your Pet Deserves" />
+  <meta property="og:description"
+    content="Premium pet supplies for dogs, cats and every companion. Free delivery on prepaid orders." />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="en_IN" />
+  <meta property="og:image" content="/images/hero-banner.png" />
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AniLiving — Everything Your Pet Deserves" />
-    <meta name="twitter:description" content="Premium pet supplies for dogs, cats and every companion." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AniLiving — Everything Your Pet Deserves" />
+  <meta name="twitter:description" content="Premium pet supplies for dogs, cats and every companion." />
 
-    <!-- Fonts: preconnect first so the stylesheet request doesn't wait on DNS
+  <!-- Fonts: preconnect first so the stylesheet request doesn't wait on DNS
          and TLS. `display=swap` keeps text visible while Poppins loads. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
 
-    <!-- The hero image is the largest contentful paint on the homepage -->
-    <link rel="preload" as="image" href="/images/hero-banner.png" fetchpriority="high" />
+  <!-- The hero image is the largest contentful paint on the homepage -->
+  <link rel="preload" as="image" href="/images/hero-banner.png" fetchpriority="high" />
 
-    <!-- Payment and identity providers are loaded on demand; warming the
+  <!-- Payment and identity providers are loaded on demand; warming the
          connection early shaves a round trip off checkout and sign-in. -->
-    <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
-    <link rel="dns-prefetch" href="https://accounts.google.com" />
-    <link rel="dns-prefetch" href="https://checkout-ui.shiprocket.com" />
-  </head>
-  <body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P7RDDJLF"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
+  <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
+  <link rel="dns-prefetch" href="https://accounts.google.com" />
+  <link rel="dns-prefetch" href="https://checkout-ui.shiprocket.com" />
+</head>
 
-    <div id="root"></div>
-    <noscript>
-      <div style="padding:2rem;font-family:system-ui,sans-serif;text-align:center">
-        <h1>AniLiving</h1>
-        <p>This store needs JavaScript enabled. Please turn it on and reload the page.</p>
-      </div>
-    </noscript>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P7RDDJLF" height="0" width="0"
+      style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+  <div id="root"></div>
+  <noscript>
+    <div style="padding:2rem;font-family:system-ui,sans-serif;text-align:center">
+      <h1>AniLiving</h1>
+      <p>This store needs JavaScript enabled. Please turn it on and reload the page.</p>
+    </div>
+  </noscript>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>
